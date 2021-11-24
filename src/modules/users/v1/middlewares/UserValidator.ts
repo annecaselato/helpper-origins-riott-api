@@ -58,6 +58,13 @@ export class UserValidator extends BaseValidator {
                         check = user ? req.body.id === user.id.toString() : true;
                     }
 
+                    if (req.body.email) {
+                        const userRepository: UserRepository = new UserRepository();
+                        const user: User | undefined = await userRepository.findByEmail(req.body.email);
+
+                        check = user ? req.body.id === user.id.toString() : true;
+                    }
+
                     return check ? Promise.resolve() : Promise.reject();
                 }
             }
@@ -72,6 +79,8 @@ export class UserValidator extends BaseValidator {
     public static post(): RequestHandler[] {
         return UserValidator.validationList({
             name: UserValidator.model.name,
+            email: UserValidator.model.email,
+            password: UserValidator.model.password,
             duplicate: UserValidator.model.duplicate
         });
     }
