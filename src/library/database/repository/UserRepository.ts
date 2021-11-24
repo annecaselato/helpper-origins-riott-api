@@ -33,7 +33,7 @@ export class UserRepository extends BaseRepository {
     }
 
     /**
-     * insert
+     * update
      *
      * Altera um usuário
      *
