@@ -1,3 +1,4 @@
 export enum EnumEndpoints {
-    USER_V1 = '/v1/user'
+    USER_V1 = '/v1/user',
+    AUTH_V1 = '/v1/auth'
 }
