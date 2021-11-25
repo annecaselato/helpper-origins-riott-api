@@ -11,9 +11,11 @@ ENV PATH /app/node_modules/.bin:$PATH
 COPY package.json /app/package.json
 
 # Install dependencies
+RUN npm i bcryptjs
+RUN npm i -D @types/bcryptjs
+RUN npm i jsonwebtoken
+RUN npm i -D @types/jsonwebtoken
 RUN npm install
-RUN npm install bcryptjs --save
-RUN npm install @types/bcryptjs --save
 
 # Listening ports EXPOSE
 EXPOSE 8080
