@@ -19,6 +19,7 @@ export class User extends BaseEntity {
     @BeforeInsert()
     @BeforeUpdate()
     hashPassword(): void {
+        // const bcrypt = require('bcryptjs');
         this.password = bcrypt.hashSync(this.password, 8);
     }
 
