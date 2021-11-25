@@ -1,6 +1,8 @@
 // Modules
 import { Request, Response } from 'express';
+
 import bcrypt from 'bcryptjs';
+
 import jwt from 'jsonwebtoken';
 
 // Library
@@ -12,13 +14,20 @@ import { User } from '../../../../library/database/entity';
 // Repositories
 import { UserRepository } from '../../../../library/database/repository';
 
+// Decorators
+import { Controller, Post, PublicRoute } from '../../../../decorators';
+
+// Models
+import { EnumEndpoints } from '../../../../models';
+
 // Routes
 import { RouteResponse } from '../../../../routes';
 
+@Controller(EnumEndpoints.AUTH_V1)
 export class AuthController extends BaseController {
     /**
      * @swagger
-     * /v1/user:
+     * /v1/auth:
      *   authenticate:
      *     summary: Autentica os dados de login
      *     tags: [Users]
@@ -49,9 +58,14 @@ export class AuthController extends BaseController {
      *     responses:
      *       $ref: '#/components/responses/baseResponse'
      */
+    @Post()
+    @PublicRoute()
     async authenticate(req: Request, res: Response): Promise<void> {
         const repository: UserRepository = new UserRepository();
         const user: User | undefined = await repository.findByEmail(req.body.email);
+
+        // const bcrypt = require('bcryptjs');
+        // const jwt = require('jsonwebtoken');
 
         // Autenticação do email
         if (!user) {
