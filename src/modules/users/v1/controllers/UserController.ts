@@ -47,7 +47,6 @@ export class UserController extends BaseController {
     @PublicRoute()
     public async get(req: Request, res: Response): Promise<void> {
         const [rows, count] = await new UserRepository().list<User>(UserController.listParams(req));
-
         RouteResponse.success({ rows, count }, res);
     }
 
