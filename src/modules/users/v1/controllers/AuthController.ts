@@ -1,8 +1,6 @@
 // Modules
 import { Request, Response } from 'express';
-
 import bcrypt from 'bcryptjs';
-
 import jwt from 'jsonwebtoken';
 
 // Library
@@ -28,9 +26,9 @@ export class AuthController extends BaseController {
     /**
      * @swagger
      * /v1/auth:
-     *   authenticate:
+     *   post:
      *     summary: Autentica os dados de login
-     *     tags: [Users]
+     *     tags: [Auth]
      *     consumes:
      *       - application/json
      *     produces:
@@ -41,16 +39,12 @@ export class AuthController extends BaseController {
      *           schema:
      *             type: object
      *             example:
-     *               name: userName
      *               email: userEmail
      *               password: userPassword
      *             required:
-     *               - name
      *               - email
      *               - password
      *             properties:
-     *               name:
-     *                 type: string
      *               email:
      *                 type: string
      *               password:
@@ -63,9 +57,6 @@ export class AuthController extends BaseController {
     async authenticate(req: Request, res: Response): Promise<void> {
         const repository: UserRepository = new UserRepository();
         const user: User | undefined = await repository.findByEmail(req.body.email);
-
-        // const bcrypt = require('bcryptjs');
-        // const jwt = require('jsonwebtoken');
 
         // Autenticação do email
         if (!user) {
@@ -80,8 +71,6 @@ export class AuthController extends BaseController {
 
             // Gerando o token
             const token = jwt.sign({ id: user.id }, 'secret', { expiresIn: '1d' });
-
-            // delete user.password;
             RouteResponse.successEmpty(res.json({ user: [user.id, user.email], token }));
         }
     }
