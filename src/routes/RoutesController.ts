@@ -1,6 +1,9 @@
 // Modules
 import { Router, Request, Response, NextFunction } from 'express';
 
+// Middlewares
+import { AuthMiddleware } from '../modules/users/v1';
+
 // Models
 import { EnumDecorators, IRouteDef } from '../models';
 
@@ -28,11 +31,15 @@ export class RoutesController {
         controllers.forEach((Controller: TClass<any>) => {
             const instance = new Controller();
             const prefix = Reflect.getMetadata(EnumDecorators.CONTROLLER_PREFIX, Controller);
+            const publicRoutes: Array<string | symbol> = Reflect.getMetadata(EnumDecorators.PUBLIC_ROUTES, Controller) || [];
             const routes: IRouteDef[] = Reflect.getMetadata(EnumDecorators.ROUTES, Controller);
             const allMiddlewares: any = Reflect.getMetadata(EnumDecorators.MIDDLEWARE, Controller) || {};
 
             routes.forEach((route: IRouteDef) => {
                 const methodMiddlewares: any[] = allMiddlewares[route.methodName] || [];
+                if (!publicRoutes.includes(route.methodName)) {
+                    methodMiddlewares.unshift(AuthMiddleware.auth);
+                }
                 router[route.requestMethod](prefix + route.path, [...methodMiddlewares, this.runAsyncWrapper(instance[route.methodName])]);
             });
         });
