@@ -2,7 +2,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 
 // Middlewares
-import { AuthMiddleware } from '../modules/users/v1';
+import { AuthMiddleware } from '../modules/users/v1/middlewares/AuthMiddleware';
 
 // Models
 import { EnumDecorators, IRouteDef } from '../models';
