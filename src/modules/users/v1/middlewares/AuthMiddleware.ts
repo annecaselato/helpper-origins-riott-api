@@ -11,22 +11,23 @@ interface ITokenPayload {
     exp: number;
 }
 
-export function AuthMiddleware(req: Request, res: Response, next: NextFunction): void {
-    const { authorization } = req.headers;
+export class AuthMiddleware {
+    public static auth(req: Request, res: Response, next: NextFunction): void {
+        const { authorization } = req.headers;
 
-    if (!authorization) {
-        RouteResponse.unauthorizedError(res);
-    } else {
-        const token = authorization.replace('Bearer', '').trim();
-
-        try {
-            const data = jwt.verify(token, 'secret');
-            const { id } = data as ITokenPayload;
-            req.userId = id;
-
-            return next();
-        } catch {
+        if (!authorization) {
             RouteResponse.unauthorizedError(res);
+        } else {
+            const token = authorization.replace('Bearer', '').trim();
+
+            try {
+                const data = jwt.verify(token, 'secret');
+                const { id } = data as ITokenPayload;
+                req.userId = id;
+                next();
+            } catch {
+                RouteResponse.unauthorizedError(res);
+            }
         }
     }
 }
