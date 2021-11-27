@@ -27,6 +27,24 @@ import { UserValidator } from '../middlewares/UserValidator';
 export class UserController extends BaseController {
     /**
      * @swagger
+     * /v1/user/teste:
+     *   get:
+     *     summary: Testa uma rota privada
+     *     tags: [Users]
+     *     consumes:
+     *       - application/json
+     *     produces:
+     *       - application/json
+     *     responses:
+     *       $ref: '#/components/responses/baseResponse'
+     */
+    @Get('/teste')
+    public async privateTest(req: Request, res: Response): Promise<void> {
+        RouteResponse.success({ userID: req.userId }, res);
+    }
+
+    /**
+     * @swagger
      * /v1/user:
      *   get:
      *     summary: Lista os usuários
