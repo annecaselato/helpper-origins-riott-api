@@ -31,6 +31,8 @@ export class UserController extends BaseController {
      *   get:
      *     summary: Testa uma rota privada
      *     tags: [Users]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
