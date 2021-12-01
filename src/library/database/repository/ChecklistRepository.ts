@@ -59,15 +59,15 @@ export class ChecklistRepository extends BaseRepository {
     }
 
     /**
-     * findByName
+     * findByStatus
      *
-     * Busca uma lista de marcação pelo nome
+     * Busca uma lista de marcação pelo status
      *
-     * @param name - Nome da lista de marcação
+     * @param status - Status da lista de marcação
      *
      * @returns Lista de marcação buscada
      */
-    public findByName(name: string): Promise<Checklist | undefined> {
-        return this.getConnection().getRepository(Checklist).findOne({ name });
+    public findByStatus(status: string): Promise<Checklist | undefined> {
+        return this.getConnection().getRepository(Checklist).findOne({ status });
     }
 }
