@@ -8,7 +8,7 @@ export class Checklist extends BaseEntity {
     @Column()
     public memberId: string;
 
-    @Column({ unique: true })
+    @Column()
     public name: string;
 
     @Column()
