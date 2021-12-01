@@ -8,9 +8,6 @@ import { ChecklistRepository } from '../../../../library/database/repository/Che
 // Validators
 import { BaseValidator } from '../../../../library/BaseValidator';
 
-// Entities
-import { Checklist } from '../../../../library/database/entity';
-
 // Models
 import { EnumListStatus } from '../../../../models';
 
@@ -27,6 +24,7 @@ export class ChecklistValidator extends BaseValidator {
      */
     private static model: Schema = {
         name: BaseValidator.validators.name,
+        memberId: { in: 'body', isString: true, errorMessage: 'Membro inválido' },
         status: {
             in: 'body',
             custom: {
@@ -37,26 +35,12 @@ export class ChecklistValidator extends BaseValidator {
             trim: true,
             errorMessage: 'Status inválido'
         },
+        initialAllowance: { in: 'body', isNumeric: true, errorMessage: 'Mesada inválida' },
+        deduction: { in: 'body', isNumeric: true, errorMessage: 'Desconto invalido' },
+        finalAllowance: { in: 'body', isNumeric: true, errorMessage: 'Total inválido' },
         id: {
             ...BaseValidator.validators.id(new ChecklistRepository()),
             errorMessage: 'Lista não encontrada'
-        },
-        duplicate: {
-            errorMessage: 'Lista já existe',
-            custom: {
-                options: async (_: string, { req }) => {
-                    let check = false;
-
-                    if (req.body.name) {
-                        const checklistRepository: ChecklistRepository = new ChecklistRepository();
-                        const checklist: Checklist | undefined = await checklistRepository.findByName(req.body.name);
-
-                        check = checklist ? req.body.id === checklist.id.toString() : true;
-                    }
-
-                    return check ? Promise.resolve() : Promise.reject();
-                }
-            }
         }
     };
 
@@ -81,6 +65,27 @@ export class ChecklistValidator extends BaseValidator {
         return ChecklistValidator.validationList({
             id: ChecklistValidator.model.id,
             ...ChecklistValidator.model
+        });
+    }
+
+    /**
+     * delete
+     *
+     * @returns Lista de validadores
+     */
+    public static delete(): RequestHandler[] {
+        return BaseValidator.validationList({
+            id: ChecklistValidator.model.id,
+            status: {
+                in: 'body',
+                custom: {
+                    options: status => {
+                        return Object.values(EnumListStatus).includes(status);
+                    }
+                },
+                trim: true,
+                errorMessage: 'Status inválido'
+            }
         });
     }
 
