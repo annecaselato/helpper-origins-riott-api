@@ -11,6 +11,11 @@ interface ITokenPayload {
     exp: number;
 }
 
+/**
+ * AuthMiddleware
+ *
+ * Classe de middleware que autentica o token nas rotas privadas
+ */
 export class AuthMiddleware {
     public static auth(req: Request, res: Response, next: NextFunction): void {
         const { authorization } = req.headers;
