@@ -28,6 +28,23 @@ export class UserValidator extends BaseValidator {
             ...BaseValidator.validators.id(new UserRepository()),
             errorMessage: 'Usuário não encontrado'
         },
+        email: {
+            in: 'body',
+            isString: true,
+            isEmail: true,
+            trim: true,
+            errorMessage: 'Email inválido'
+        },
+        password: {
+            in: 'body',
+            isString: true,
+            isLength: {
+                errorMessage: 'A senha deve conter no mínimo 6 caracteres',
+                options: { min: 6 }
+            },
+            trim: true,
+            errorMessage: 'Senha inválida'
+        },
         duplicate: {
             errorMessage: 'Usuário já existe',
             custom: {
@@ -37,6 +54,13 @@ export class UserValidator extends BaseValidator {
                     if (req.body.name) {
                         const userRepository: UserRepository = new UserRepository();
                         const user: User | undefined = await userRepository.findByName(req.body.name);
+
+                        check = user ? req.body.id === user.id.toString() : true;
+                    }
+
+                    if (req.body.email) {
+                        const userRepository: UserRepository = new UserRepository();
+                        const user: User | undefined = await userRepository.findByEmail(req.body.email);
 
                         check = user ? req.body.id === user.id.toString() : true;
                     }
@@ -55,6 +79,8 @@ export class UserValidator extends BaseValidator {
     public static post(): RequestHandler[] {
         return UserValidator.validationList({
             name: UserValidator.model.name,
+            email: UserValidator.model.email,
+            password: UserValidator.model.password,
             duplicate: UserValidator.model.duplicate
         });
     }
