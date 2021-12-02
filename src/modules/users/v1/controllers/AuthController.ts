@@ -54,7 +54,7 @@ export class AuthController extends BaseController {
      */
     @Post()
     @PublicRoute()
-    async authenticate(req: Request, res: Response): Promise<void> {
+    public async authenticate(req: Request, res: Response): Promise<void> {
         const repository: UserRepository = new UserRepository();
         const user: User | undefined = await repository.findByEmail(req.body.email);
 

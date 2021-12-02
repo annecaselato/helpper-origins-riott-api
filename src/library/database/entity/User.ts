@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs';
 
 @Entity()
 export class User extends BaseEntity {
-    @ObjectIdColumn() // Alterar para @PrimaryGeneratedColumn em caso de banco diferente do MongoDB
+    @ObjectIdColumn()
     public id: ObjectID;
 
     @Column({ unique: true })
@@ -18,8 +18,7 @@ export class User extends BaseEntity {
 
     @BeforeInsert()
     @BeforeUpdate()
-    hashPassword(): void {
-        // const bcrypt = require('bcryptjs');
+    public hashPassword(): void {
         this.password = bcrypt.hashSync(this.password, 8);
     }
 
