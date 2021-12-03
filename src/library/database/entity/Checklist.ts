@@ -15,15 +15,6 @@ export class Checklist extends BaseEntity {
     public status: string;
 
     @Column()
-    public initialAllowance: number;
-
-    @Column()
-    public deduction: number;
-
-    @Column()
-    public finalAllowance: number;
-
-    @Column()
     public createdAt: Date;
 
     @Column()
