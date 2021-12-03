@@ -3,7 +3,7 @@ import { RequestHandler } from 'express';
 import { Schema } from 'express-validator';
 
 // Repositories
-import { ChecklistRepository } from '../../../../library/database/repository/ChecklistRepository';
+import { ChecklistRepository, MemberRepository } from '../../../../library/database/repository';
 
 // Validators
 import { BaseValidator } from '../../../../library/BaseValidator';
@@ -24,7 +24,10 @@ export class ChecklistValidator extends BaseValidator {
      */
     private static model: Schema = {
         name: BaseValidator.validators.name,
-        memberId: { in: 'body', isString: true, errorMessage: 'Membro inválido' },
+        memberId: {
+            ...BaseValidator.validators.id(new MemberRepository()),
+            errorMessage: 'Membro não encontrado'
+        },
         status: {
             in: 'body',
             custom: {
@@ -35,14 +38,23 @@ export class ChecklistValidator extends BaseValidator {
             trim: true,
             errorMessage: 'Status inválido'
         },
-        initialAllowance: { in: 'body', isNumeric: true, errorMessage: 'Mesada inválida' },
-        deduction: { in: 'body', isNumeric: true, errorMessage: 'Desconto invalido' },
-        finalAllowance: { in: 'body', isNumeric: true, errorMessage: 'Total inválido' },
         id: {
             ...BaseValidator.validators.id(new ChecklistRepository()),
             errorMessage: 'Lista não encontrada'
         }
     };
+
+    /**
+     * patch
+     *
+     * @returns Lista de validadores
+     */
+    public static patch(): RequestHandler[] {
+        return BaseValidator.validationList({
+            id: ChecklistValidator.model.id,
+            status: ChecklistValidator.model.status
+        });
+    }
 
     /**
      * post
@@ -52,51 +64,8 @@ export class ChecklistValidator extends BaseValidator {
     public static post(): RequestHandler[] {
         return ChecklistValidator.validationList({
             name: ChecklistValidator.model.name,
-            duplicate: ChecklistValidator.model.duplicate
-        });
-    }
-
-    /**
-     * put
-     *
-     * @returns Lista de validadores
-     */
-    public static put(): RequestHandler[] {
-        return ChecklistValidator.validationList({
-            id: ChecklistValidator.model.id,
-            ...ChecklistValidator.model
-        });
-    }
-
-    /**
-     * delete
-     *
-     * @returns Lista de validadores
-     */
-    public static delete(): RequestHandler[] {
-        return BaseValidator.validationList({
-            id: ChecklistValidator.model.id,
-            status: {
-                in: 'body',
-                custom: {
-                    options: status => {
-                        return Object.values(EnumListStatus).includes(status);
-                    }
-                },
-                trim: true,
-                errorMessage: 'Status inválido'
-            }
-        });
-    }
-
-    /**
-     * onlyId
-     *
-     * @returns Lista de validadores
-     */
-    public static onlyId(): RequestHandler[] {
-        return BaseValidator.validationList({
-            id: ChecklistValidator.model.id
+            memberId: ChecklistValidator.model.memberId,
+            status: ChecklistValidator.model.status
         });
     }
 }
