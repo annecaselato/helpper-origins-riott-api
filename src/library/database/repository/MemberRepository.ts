@@ -1,5 +1,5 @@
 // Modules
-import { DeepPartial, DeleteResult, Repository } from 'typeorm';
+import { DeepPartial, DeleteResult, ObjectID, Repository, UpdateResult } from 'typeorm';
 
 // Entities
 import { Member } from '../entity';
@@ -69,5 +69,9 @@ export class MemberRepository extends BaseRepository {
      */
     public findByName(name: string): Promise<Member | undefined> {
         return this.getConnection().getRepository(Member).findOne({ name });
+    }
+
+    public setAvatar(userId: ObjectID, avatarUrl: string): Promise<UpdateResult> {
+        return this.getConnection().getRepository(Member).update(userId, { avatar: avatarUrl });
     }
 }

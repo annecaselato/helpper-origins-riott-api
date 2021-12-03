@@ -1,9 +1,17 @@
 // Modules
-import { DeepPartial } from 'typeorm';
+import { DeepPartial, ObjectID } from 'typeorm';
 import { Request, Response } from 'express';
+import multer, { diskStorage } from 'multer';
+import { Body, UploadedFile, UseInterceptors, Req, Res, Param } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBody, ApiConsumes } from '@nestjs/swagger';
+import { ObjectId } from 'mongodb';
 
 // Library
-import { BaseController, BaseValidator } from '../../../../library';
+import { extname } from 'path';
+import { param } from 'express-validator';
+import { Helper } from '../../../../config/multer';
+import { BaseController, BaseValidator, Logger } from '../../../../library';
 
 // Decorators
 import { Controller, Delete, Get, Middlewares, Post, PublicRoute, Put } from '../../../../decorators';
@@ -22,6 +30,8 @@ import { MemberRepository } from '../../../../library/database/repository';
 
 // Validators
 import { MemberValidator } from '../middlewares/MemberValidator';
+
+const SERVER_URL = 'http://localhost:4444/';
 
 @Controller(EnumEndpoints.MEMBER)
 export class MemberController extends BaseController {
@@ -117,13 +127,37 @@ export class MemberController extends BaseController {
 
         const newMember: DeepPartial<Member> = {
             name: req.body.name,
-            birthDate: formatedDate,
+            birthdate: formatedDate,
             allowance: req.body.allowance
         };
 
         await new MemberRepository().insert(newMember);
 
         RouteResponse.successCreate(res);
+    }
+
+    /**
+     * @swagger
+     * /v1/member/{memberId}/avatar:
+     *   post:
+     *     summary: Envia arquivo de foto
+     *     tags: [Members]
+     *     requestBody:
+     *       content:
+     *          image/jpg:
+     *              schema:
+     *                  type: string
+     *                  format: binary
+     *     responses:
+     *       $ref: '#/components/responses/baseCreate'
+     */
+    @Post('/:id/avatar')
+    @PublicRoute()
+    @ApiConsumes('multipart/form-data')
+    @Middlewares(MemberValidator.onlyId())
+    @UseInterceptors(FileInterceptor('file'))
+    public async uploadFile(@UploadedFile() file: Express.Multer.File): Promise<void> {
+        new Logger().log(file);
     }
 
     /**
@@ -136,6 +170,12 @@ export class MemberController extends BaseController {
      *       - application/json
      *     produces:
      *       - application/json
+     *     parameters:
+     *       - in: path
+     *         name: memberId
+     *         schema:
+     *           type: string
+     *         required: true
      *     requestBody:
      *       content:
      *         application/json:
@@ -169,7 +209,7 @@ export class MemberController extends BaseController {
         const formatedDate: Date = BaseValidator.formatDate(req.body.birthdate);
 
         member.name = req.body.name;
-        member.birthDate = formatedDate;
+        member.birthdate = formatedDate;
         member.allowance = req.body.allowance;
 
         await new MemberRepository().update(member);

@@ -1,34 +1,21 @@
-// eslint-disable-next-line import/no-unresolved
-import { diskStorage, Options } from 'multer';
-import { randomBytes } from 'crypto';
-import { resolve } from 'path';
+// import { Logger } from 'library';
+// import multer from 'multer';
+// import { extname } from 'path';
 
-export const multerConfig = {
-    dest: resolve(__dirname, '..', 'uploads'),
-    storage: diskStorage({
-        destination: (request: any, file: any, callback: (arg0: null, arg1: string) => void) => {
-            callback(null, resolve(__dirname, '..', 'uploads'));
-        },
-        filename: (request: any, file: { filename: any }, callback: (arg0: Error | null, arg1: string) => void) => {
-            randomBytes(16, (error, hash) => {
-                if (error) {
-                    callback(error, file.filename);
-                }
-                const filename = `${hash.toString('hex')}.jpeg`;
-                callback(null, filename);
-            });
+export class Helper {
+    static customFileName(req: any, file: { mimetype: string | string[]; originalname: string }, cb: (arg0: null, arg1: string) => void): void {
+        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        let fileExtension = '';
+        if (file.mimetype.indexOf('jpeg') > -1) {
+            fileExtension = 'jpg';
+        } else if (file.mimetype.indexOf('png') > -1) {
+            fileExtension = 'png';
         }
-    }),
-    limits: {
-        fileSize: 2 * 1024 * 1024 // 2Mb
-    },
-    fileFilter: (request, file, callback) => {
-        const formats = ['image/jpeg', 'image/jpg', 'image/png'];
-
-        if (formats.includes(file.mimetype)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Formato não suportado'));
-        }
+        const originalName = file.originalname.split('.')[0];
+        cb(null, `${originalName}-${uniqueSuffix}.${fileExtension}`);
     }
-} as Options;
+
+    static destinationPath(req: any, file: any, cb: (arg0: null, arg1: string) => void): void {
+        cb(null, 'avatars/');
+    }
+}
