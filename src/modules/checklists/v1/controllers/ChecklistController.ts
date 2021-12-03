@@ -1,14 +1,15 @@
 // Modules
+import { DeepPartial } from 'typeorm';
 import { Request, Response } from 'express';
 
 // Library
 import { BaseController } from '../../../../library';
 
 // Decorators
-import { Controller, Middlewares, Get, Patch, Delete } from '../../../../decorators';
+import { Controller, Middlewares, Get, Patch, Post } from '../../../../decorators';
 
 // Models
-import { EnumEndpoints } from '../../../../models';
+import { EnumEndpoints, EnumListStatus } from '../../../../models';
 
 // Routes
 import { RouteResponse } from '../../../../routes';
@@ -26,51 +27,34 @@ import { ChecklistValidator } from '../middlewares/ChecklistValidator';
 export class ChecklistController extends BaseController {
     /**
      * @swagger
-     * /v1/checklist:
+     * /v1/checklist/{memberId}:
      *   get:
-     *     summary: Retorna a lista de marcação ativa
+     *     summary: Retorna informações da lista ativa de um membro
      *     tags: [Checklists]
      *     consumes:
      *       - application/json
      *     produces:
      *       - application/json
-     *     requestBody:
-     *       content:
-     *         application/json:
-     *           schema:
-     *             type: object
-     *             example:
-     *               memberId: memberId
-     *               status: listStatus
-     *             required:
-     *               - memberId
-     *               - status
-     *             properties:
-     *               memberId:
-     *                 type: string
-     *               status:
-     *                 type: string
+     *     parameters:
+     *       - in: path
+     *         name: memberId
+     *         schema:
+     *           type: string
+     *         required: true
      *     responses:
      *       $ref: '#/components/responses/baseResponse'
      */
-    @Get()
-    public async getList(req: Request, res: Response): Promise<void> {
-        const repository: ChecklistRepository = new ChecklistRepository();
-
-        const checklist: Checklist | undefined = await repository.findByStatus(req.body.status);
-    }
-
-    @Patch('/:id')
-    public async closeList(req: Request, res: Response): Promise<void> {
-        const repository: ChecklistRepository = new ChecklistRepository();
-        const checklist: Checklist | undefined = await repository.findByStatus(req.body.status);
+    @Get('/:memberId')
+    // @Middlewares(ChecklistValidator.onlyId())
+    public async getActive(req: Request, res: Response): Promise<void> {
+        RouteResponse.success({ ...req.body.checklistRef }, res);
     }
 
     /**
      * @swagger
      * /v1/checklist/{checklistId}:
-     *   delete:
-     *     summary: Apaga uma lista de marcação aberta definitivamente
+     *   patch:
+     *     summary: Altera o status da lista de marcação para Fechada
      *     tags: [Checklists]
      *     consumes:
      *       - application/json
@@ -85,13 +69,56 @@ export class ChecklistController extends BaseController {
      *     responses:
      *       $ref: '#/components/responses/baseResponse'
      */
-    @Delete('/:id')
-    @Middlewares(ChecklistValidator.delete())
-    public async remove(req: Request, res: Response): Promise<void> {
+    @Patch('/:id')
+    @Middlewares(ChecklistValidator.patch())
+    public async close(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
 
-        await new ChecklistRepository().delete(id);
+        await new ChecklistRepository().updateStatus(id, EnumListStatus.closed);
 
         RouteResponse.success({ id }, res);
+    }
+
+    /**
+     * @swagger
+     * /v1/checklist:
+     *   post:
+     *     summary: Cadastra uma lista de marcação
+     *     tags: [Checklists]
+     *     consumes:
+     *       - application/json
+     *     produces:
+     *       - application/json
+     *     requestBody:
+     *       content:
+     *         application/json:
+     *           schema:
+     *             type: object
+     *             example:
+     *               name: checklistName
+     *               memberId: checklistMember
+     *             required:
+     *               - name
+     *               - memberId
+     *             properties:
+     *               name:
+     *                 type: string
+     *               memberId:
+     *                 type: string
+     *     responses:
+     *       $ref: '#/components/responses/baseCreate'
+     */
+    @Post()
+    @Middlewares(ChecklistValidator.post())
+    public async add(req: Request, res: Response): Promise<void> {
+        const newChecklist: DeepPartial<Checklist> = {
+            name: req.body.name,
+            memberId: req.body.memberId,
+            status: EnumListStatus.onHold
+        };
+
+        await new ChecklistRepository().insert(newChecklist);
+
+        RouteResponse.successCreate(res);
     }
 }
