@@ -31,6 +31,8 @@ export class ChecklistController extends BaseController {
      *   get:
      *     summary: Retorna informações da lista ativa de um membro
      *     tags: [Checklists]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
@@ -45,9 +47,12 @@ export class ChecklistController extends BaseController {
      *       $ref: '#/components/responses/baseResponse'
      */
     @Get('/:memberId')
-    // @Middlewares(ChecklistValidator.onlyId())
+    @Middlewares(ChecklistValidator.memberId())
     public async getActive(req: Request, res: Response): Promise<void> {
-        RouteResponse.success({ ...req.body.checklistRef }, res);
+        const { memberId } = req.params;
+        const activeList = await new ChecklistRepository().findByMemberAndStatus(memberId, EnumListStatus.active);
+
+        RouteResponse.success({ activeList }, res);
     }
 
     /**
@@ -56,6 +61,8 @@ export class ChecklistController extends BaseController {
      *   patch:
      *     summary: Altera o status da lista de marcação para Fechada
      *     tags: [Checklists]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
@@ -70,7 +77,7 @@ export class ChecklistController extends BaseController {
      *       $ref: '#/components/responses/baseResponse'
      */
     @Patch('/:id')
-    @Middlewares(ChecklistValidator.patch())
+    @Middlewares(ChecklistValidator.onlyId())
     public async close(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
 
@@ -85,6 +92,8 @@ export class ChecklistController extends BaseController {
      *   post:
      *     summary: Cadastra uma lista de marcação
      *     tags: [Checklists]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:

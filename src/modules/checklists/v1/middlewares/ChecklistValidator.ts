@@ -8,9 +8,6 @@ import { ChecklistRepository, MemberRepository } from '../../../../library/datab
 // Validators
 import { BaseValidator } from '../../../../library/BaseValidator';
 
-// Models
-import { EnumListStatus } from '../../../../models';
-
 /**
  * ChecklistValidator
  *
@@ -28,33 +25,11 @@ export class ChecklistValidator extends BaseValidator {
             ...BaseValidator.validators.id(new MemberRepository()),
             errorMessage: 'Membro não encontrado'
         },
-        status: {
-            in: 'body',
-            custom: {
-                options: status => {
-                    return Object.values(EnumListStatus).includes(status);
-                }
-            },
-            trim: true,
-            errorMessage: 'Status inválido'
-        },
         id: {
             ...BaseValidator.validators.id(new ChecklistRepository()),
             errorMessage: 'Lista não encontrada'
         }
     };
-
-    /**
-     * patch
-     *
-     * @returns Lista de validadores
-     */
-    public static patch(): RequestHandler[] {
-        return BaseValidator.validationList({
-            id: ChecklistValidator.model.id,
-            status: ChecklistValidator.model.status
-        });
-    }
 
     /**
      * post
@@ -64,8 +39,29 @@ export class ChecklistValidator extends BaseValidator {
     public static post(): RequestHandler[] {
         return ChecklistValidator.validationList({
             name: ChecklistValidator.model.name,
-            memberId: ChecklistValidator.model.memberId,
-            status: ChecklistValidator.model.status
+            memberId: ChecklistValidator.model.memberId
+        });
+    }
+
+    /**
+     * onlyId
+     *
+     * @returns Lista de validadores
+     */
+    public static onlyId(): RequestHandler[] {
+        return BaseValidator.validationList({
+            id: ChecklistValidator.model.id
+        });
+    }
+
+    /**
+     * memberId
+     *
+     * @returns Lista de validadores
+     */
+    public static memberId(): RequestHandler[] {
+        return BaseValidator.validationList({
+            memberId: ChecklistValidator.model.memberId
         });
     }
 }

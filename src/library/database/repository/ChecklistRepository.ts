@@ -81,20 +81,7 @@ export class ChecklistRepository extends BaseRepository {
      *
      * @returns Lista de marcação buscada
      */
-    public findByMember(memberId: string): Promise<Checklist | undefined> {
-        return this.getConnection().getRepository(Checklist).findOne({ memberId });
-    }
-
-    /**
-     * findByStatus
-     *
-     * Busca uma lista de marcação pelo status
-     *
-     * @param status - Status da lista de marcação
-     *
-     * @returns Lista de marcação buscada
-     */
-    public findByStatus(status: string): Promise<Checklist | undefined> {
-        return this.getConnection().getRepository(Checklist).findOne({ status });
+    public findByMemberAndStatus(memberId: string, status: string): Promise<Checklist[] | undefined> {
+        return this.getConnection().getRepository(Checklist).find({ memberId, status });
     }
 }
