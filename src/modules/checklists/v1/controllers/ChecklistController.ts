@@ -51,15 +51,19 @@ export class ChecklistController extends BaseController {
     public async getActive(req: Request, res: Response): Promise<void> {
         const { memberId } = req.params;
         const activeList = await new ChecklistRepository().findByMemberAndStatus(memberId, EnumListStatus.active);
-
-        RouteResponse.success({ activeList }, res);
+        if (!activeList) {
+            RouteResponse.error('Nenhuma lista em andamento', res);
+        } else {
+            const listItems = await new ChecklistRepository().findListItems(activeList[0].id.toString());
+            RouteResponse.success({ activeList, listItems }, res);
+        }
     }
 
     /**
      * @swagger
      * /v1/checklist/{checklistId}:
      *   patch:
-     *     summary: Altera o status da lista de marcação para Fechada
+     *     summary: Fecha uma lista de marcação
      *     tags: [Checklists]
      *     security:
      *       - bearerAuth: []
@@ -80,8 +84,37 @@ export class ChecklistController extends BaseController {
     @Middlewares(ChecklistValidator.onlyId())
     public async close(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
-
         await new ChecklistRepository().updateStatus(id, EnumListStatus.closed);
+
+        RouteResponse.success({ id }, res);
+    }
+
+    /**
+     * @swagger
+     * /v1/checklist/start/{checklistId}:
+     *   patch:
+     *     summary: Inicia uma lista de marcação
+     *     tags: [Checklists]
+     *     security:
+     *       - bearerAuth: []
+     *     consumes:
+     *       - application/json
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - in: path
+     *         name: checklistId
+     *         schema:
+     *           type: string
+     *         required: true
+     *     responses:
+     *       $ref: '#/components/responses/baseResponse'
+     */
+    @Patch('/start/:id')
+    @Middlewares(ChecklistValidator.onlyId())
+    public async start(req: Request, res: Response): Promise<void> {
+        const { id } = req.params;
+        await new ChecklistRepository().updateStatus(id, EnumListStatus.active);
 
         RouteResponse.success({ id }, res);
     }
@@ -129,5 +162,31 @@ export class ChecklistController extends BaseController {
         await new ChecklistRepository().insert(newChecklist);
 
         RouteResponse.successCreate(res);
+    }
+
+    /**
+     * @swagger
+     * /v1/checklist:
+     *   get:
+     *     summary: Lista as listas de marcação
+     *     tags: [Checklists]
+     *     security:
+     *       - bearerAuth: []
+     *     consumes:
+     *       - application/json
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - $ref: '#/components/parameters/listPageRef'
+     *       - $ref: '#/components/parameters/listSizeRef'
+     *       - $ref: '#/components/parameters/listOrderRef'
+     *       - $ref: '#/components/parameters/listOrderByRef'
+     *     responses:
+     *       $ref: '#/components/responses/baseResponse'
+     */
+    @Get()
+    public async get(req: Request, res: Response): Promise<void> {
+        const [rows, count] = await new ChecklistRepository().list<Checklist>(ChecklistController.listParams(req));
+        RouteResponse.success({ rows, count }, res);
     }
 }
