@@ -1,8 +1,6 @@
 // Libraries
 import { RequestHandler } from 'express';
 import { Schema } from 'express-validator';
-import * as multer from 'multer';
-import { multerConfig } from '../../../../config/multer';
 
 // Repositories
 import { MemberRepository } from '../../../../library/database/repository/MemberRepository';

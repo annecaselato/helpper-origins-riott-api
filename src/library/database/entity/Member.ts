@@ -9,10 +9,13 @@ export class Member extends BaseEntity {
     public name: string;
 
     @Column()
-    public birthDate: Date;
+    public birthdate: Date;
 
     @Column()
     public allowance: number;
+
+    @Column()
+    public avatar: string;
 
     @Column()
     public createdAt: Date;

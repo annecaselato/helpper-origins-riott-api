@@ -22,7 +22,6 @@ import { MemberRepository } from '../../../../library/database/repository';
 
 // Validators
 import { MemberValidator } from '../middlewares/MemberValidator';
-
 @Controller(EnumEndpoints.MEMBER)
 export class MemberController extends BaseController {
     /**
@@ -117,7 +116,7 @@ export class MemberController extends BaseController {
 
         const newMember: DeepPartial<Member> = {
             name: req.body.name,
-            birthDate: formatedDate,
+            birthdate: formatedDate,
             allowance: req.body.allowance
         };
 
@@ -136,6 +135,12 @@ export class MemberController extends BaseController {
      *       - application/json
      *     produces:
      *       - application/json
+     *     parameters:
+     *       - in: path
+     *         name: memberId
+     *         schema:
+     *           type: string
+     *         required: true
      *     requestBody:
      *       content:
      *         application/json:
@@ -169,7 +174,7 @@ export class MemberController extends BaseController {
         const formatedDate: Date = BaseValidator.formatDate(req.body.birthdate);
 
         member.name = req.body.name;
-        member.birthDate = formatedDate;
+        member.birthdate = formatedDate;
         member.allowance = req.body.allowance;
 
         await new MemberRepository().update(member);

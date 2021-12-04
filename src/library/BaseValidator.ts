@@ -31,7 +31,7 @@ export class BaseValidator {
                     options: async (value: string, { req }: Meta) => {
                         const data = await repository.findOne(value);
 
-                        // Usa o nome do repositório para criar o nome de referência. Ex: UserRepository => userRef
+                        // Usa o nome do repositório para criar o nome de referência. Ex: MemberRepository => MemberRef
                         const refName: string = StringUtils.firstLowerCase(repository.constructor.name.replace('Repository', ''));
 
                         req.body[`${refName}Ref`] = data;
@@ -60,6 +60,12 @@ export class BaseValidator {
                 }
             },
             errorMessage: 'Nome inválido'
+        },
+        birthday: {
+            in: 'body',
+            isDateString: true,
+            match: /([0-9]{2})\/(?:[0-9]{2})\/([0-9]{4})/,
+            errorMessage: 'Data de nascimento inválida'
         }
     };
 
@@ -106,5 +112,17 @@ export class BaseValidator {
      */
     public static onlyId(repository: BaseRepository): RequestHandler[] {
         return BaseValidator.validationList({ id: BaseValidator.validators.id(repository) });
+    }
+
+    public static formatDate(data: string): Date {
+        const dateItems: any[] = data.split('/');
+        const formatItems: string[] = 'dd/mm/yyyy'.split('/');
+        const dayIndex: number = formatItems.indexOf('dd');
+        const monthIndex: number = formatItems.indexOf('mm');
+        const yearIndex: number = formatItems.indexOf('yyyy');
+        let month: number = parseInt(dateItems[monthIndex], 10);
+        month -= 1;
+        const formatedDate: Date = new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
+        return formatedDate;
     }
 }
