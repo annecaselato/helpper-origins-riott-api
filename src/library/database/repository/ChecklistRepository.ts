@@ -2,7 +2,7 @@
 import { DeepPartial, DeleteResult, Repository, UpdateResult } from 'typeorm';
 
 // Entities
-import { Checklist } from '../entity';
+import { Checklist, ListItem } from '../entity';
 
 // Repositories
 import { BaseRepository } from './BaseRepository';
@@ -33,19 +33,6 @@ export class ChecklistRepository extends BaseRepository {
     }
 
     /**
-     * update
-     *
-     * Altera uma lista de marcaação
-     *
-     * @param checklist - Dados da lista de marcaação
-     *
-     * @returns Lista de marcaação alterada
-     */
-    public update(checklist: Checklist): Promise<Checklist> {
-        return this.getConnection().getRepository(Checklist).save(checklist);
-    }
-
-    /**
      * delete
      *
      * Remove uma lista de marcação pelo ID
@@ -73,9 +60,11 @@ export class ChecklistRepository extends BaseRepository {
     }
 
     /**
-     * findByMember
+     * findByMemberAndStatus
      *
-     * Busca uma lista de marcação pela id do membro
+     * Busca uma lista de marcação pela id do membro e o status da lista
+     *
+     * @param memberId - Id do membro com a lista de marcação
      *
      * @param status - Status da lista de marcação
      *
@@ -83,5 +72,18 @@ export class ChecklistRepository extends BaseRepository {
      */
     public findByMemberAndStatus(memberId: string, status: string): Promise<Checklist[] | undefined> {
         return this.getConnection().getRepository(Checklist).find({ memberId, status });
+    }
+
+    /**
+     * findListItems
+     *
+     * Busca os itens de uma lista de marcação pelo id da lista
+     *
+     * @param listId - Id do membro com a lista de marcação
+     *
+     * @returns Lista de itens buscada
+     */
+    public findListItems(listId: string): Promise<ListItem[] | undefined> {
+        return this.getConnection().getRepository(ListItem).find({ listId });
     }
 }
