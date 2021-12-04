@@ -17,7 +17,7 @@ import { RouteResponse } from '../../../../routes';
 import { ListItemRepository } from '../../../../library/database/repository';
 
 @Controller(EnumEndpoints.CHECKLIST_V1)
-export class ChecklistController extends BaseController {
+export class ListItemController extends BaseController {
     /**
      * @swagger
      * /v1/checklist/{checklistId}:
