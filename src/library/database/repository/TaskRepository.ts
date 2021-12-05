@@ -1,5 +1,5 @@
 // Modules
-import { DeepPartial, DeleteResult, Repository } from 'typeorm';
+import { DeepPartial, Repository, UpdateResult } from 'typeorm';
 
 // Entities
 import { Task } from '../entity';
@@ -48,13 +48,26 @@ export class TaskRepository extends BaseRepository {
     /**
      * delete
      *
-     * Remove uma atividade pelo ID
+     * Altera estado de removida da atividade pelo id
      *
      * @param id - ID da atividade
      *
-     * @returns Resultado da remoção
+     * @returns Resultado da alteração
      */
-    public delete(id: string): Promise<DeleteResult> {
-        return this.getConnection().getRepository(Task).delete(id);
+    public delete(id: string): Promise<UpdateResult> {
+        return this.getConnection().getRepository(Task).update(id, { isDeleted: true });
+    }
+
+    /**
+     * findByDescription
+     *
+     * Busca uma atividade pela descrição
+     *
+     * @param description - Descrição da atividade
+     *
+     * @returns Atividade buscada
+     */
+    public findByDescription(description: string): Promise<Task | undefined> {
+        return this.getConnection().getRepository(Task).findOne({ description });
     }
 }
