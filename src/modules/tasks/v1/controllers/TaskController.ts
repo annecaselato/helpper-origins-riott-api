@@ -6,7 +6,7 @@ import { Request, Response } from 'express';
 import { BaseController } from '../../../../library';
 
 // Decorators
-import { Controller, Get, Middlewares, Post, PublicRoute, Put, Patch } from '../../../../decorators';
+import { Controller, Get, Middlewares, Post, Put, Patch } from '../../../../decorators';
 
 // Models
 import { EnumEndpoints } from '../../../../models';
@@ -31,6 +31,8 @@ export class TaskController extends BaseController {
      *   get:
      *     summary: Lista as atividades
      *     tags: [Tasks]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
@@ -44,7 +46,6 @@ export class TaskController extends BaseController {
      *       $ref: '#/components/responses/baseResponse'
      */
     @Get()
-    @PublicRoute()
     public async get(req: Request, res: Response): Promise<void> {
         const [rows, count] = await new TaskRepository().list<Task>(TaskController.listParams(req));
 
@@ -57,6 +58,8 @@ export class TaskController extends BaseController {
      *   post:
      *     summary: Cadastra uma atividade
      *     tags: [Tasks]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
@@ -77,7 +80,6 @@ export class TaskController extends BaseController {
      *       $ref: '#/components/responses/baseCreate'
      */
     @Post()
-    @PublicRoute()
     @Middlewares(TaskValidator.post())
     public async add(req: Request, res: Response): Promise<void> {
         const newTask: DeepPartial<Task> = {
@@ -95,6 +97,8 @@ export class TaskController extends BaseController {
      *   put:
      *     summary: Altera uma atividade
      *     tags: [Tasks]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
@@ -119,7 +123,6 @@ export class TaskController extends BaseController {
      *       $ref: '#/components/responses/baseEmpty'
      */
     @Put()
-    @PublicRoute()
     @Middlewares(TaskValidator.put())
     public async update(req: Request, res: Response): Promise<void> {
         const task: Task = req.body.taskRef;
@@ -137,6 +140,8 @@ export class TaskController extends BaseController {
      *   patch:
      *     summary: Apaga uma atividade
      *     tags: [Tasks]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
@@ -151,7 +156,6 @@ export class TaskController extends BaseController {
      *       $ref: '#/components/responses/baseResponse'
      */
     @Patch('/:id')
-    @PublicRoute()
     @Middlewares(TaskValidator.onlyId())
     public async hide(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
