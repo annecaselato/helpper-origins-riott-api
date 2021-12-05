@@ -134,7 +134,7 @@ export class TaskController extends BaseController {
     /**
      * @swagger
      * /v1/task/{taskId}:
-     *   hide:
+     *   patch:
      *     summary: Apaga uma atividade
      *     tags: [Tasks]
      *     consumes:
