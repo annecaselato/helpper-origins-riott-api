@@ -23,7 +23,10 @@ export class TaskValidator extends BaseValidator {
      * Schema para validação no controller de atividades
      */
     private static model: Schema = {
-        description: BaseValidator.validators.name,
+        description: {
+            ...BaseValidator.validators.name,
+            errorMessage: 'Descrição inválida'
+        },
         id: {
             ...BaseValidator.validators.id(new TaskRepository()),
             errorMessage: 'Atividade não encontrada'
