@@ -47,7 +47,6 @@ export class UserController extends BaseController {
     @PublicRoute()
     public async get(req: Request, res: Response): Promise<void> {
         const [rows, count] = await new UserRepository().list<User>(UserController.listParams(req));
-
         RouteResponse.success({ rows, count }, res);
     }
 
@@ -94,10 +93,18 @@ export class UserController extends BaseController {
      *             type: object
      *             example:
      *               name: userName
+     *               email: userEmail
+     *               password: userPassword
      *             required:
      *               - name
+     *               - email
+     *               - password
      *             properties:
      *               name:
+     *                 type: string
+     *               email:
+     *                 type: string
+     *               password:
      *                 type: string
      *     responses:
      *       $ref: '#/components/responses/baseCreate'
@@ -107,7 +114,9 @@ export class UserController extends BaseController {
     @Middlewares(UserValidator.post())
     public async add(req: Request, res: Response): Promise<void> {
         const newUser: DeepPartial<User> = {
-            name: req.body.name
+            name: req.body.name,
+            email: req.body.email,
+            password: req.body.password
         };
 
         await new UserRepository().insert(newUser);
@@ -133,13 +142,21 @@ export class UserController extends BaseController {
      *             example:
      *               id: userId
      *               name: userName
+     *               email: userEmail
+     *               password: userPassword
      *             required:
      *               - id
      *               - name
+     *               - email
+     *               - password
      *             properties:
      *               id:
      *                 type: string
      *               name:
+     *                 type: string
+     *               email:
+     *                 type: string
+     *               password:
      *                 type: string
      *     responses:
      *       $ref: '#/components/responses/baseEmpty'
@@ -151,6 +168,8 @@ export class UserController extends BaseController {
         const user: User = req.body.userRef;
 
         user.name = req.body.name;
+        user.email = req.body.email;
+        user.password = req.body.password;
 
         await new UserRepository().update(user);
 
