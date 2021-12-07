@@ -47,9 +47,9 @@ export class TaskController extends BaseController {
      */
     @Get()
     public async get(req: Request, res: Response): Promise<void> {
-        const [rows, count] = await new TaskRepository().list<Task>(TaskController.listParams(req));
+        const activeTasks = await new TaskRepository().findByStatus(false);
 
-        RouteResponse.success({ rows, count }, res);
+        RouteResponse.success({ activeTasks }, res);
     }
 
     /**
