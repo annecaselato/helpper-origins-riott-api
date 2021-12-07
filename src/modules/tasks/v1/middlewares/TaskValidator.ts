@@ -8,9 +8,6 @@ import { TaskRepository } from '../../../../library/database/repository';
 // Validators
 import { BaseValidator } from '../../../../library/BaseValidator';
 
-// Entities
-import { Task } from '../../../../library/database/entity';
-
 /**
  * TaskValidator
  *
@@ -35,23 +32,6 @@ export class TaskValidator extends BaseValidator {
         id: {
             ...BaseValidator.validators.id(new TaskRepository()),
             errorMessage: 'Atividade não encontrada'
-        },
-        duplicate: {
-            errorMessage: 'Atividade já existe',
-            custom: {
-                options: async (_: string, { req }) => {
-                    let check = false;
-
-                    if (req.body.description) {
-                        const taskRepository: TaskRepository = new TaskRepository();
-                        const task: Task | undefined = await taskRepository.findByDescription(req.body.description);
-
-                        check = task ? req.body.id === task.id.toString() : true;
-                    }
-
-                    return check ? Promise.resolve() : Promise.reject();
-                }
-            }
         }
     };
 
@@ -62,8 +42,7 @@ export class TaskValidator extends BaseValidator {
      */
     public static post(): RequestHandler[] {
         return TaskValidator.validationList({
-            description: TaskValidator.model.description,
-            duplicate: TaskValidator.model.duplicate
+            description: TaskValidator.model.description
         });
     }
 

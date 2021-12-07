@@ -59,15 +59,15 @@ export class TaskRepository extends BaseRepository {
     }
 
     /**
-     * findByDescription
+     * findByStatus
      *
-     * Busca uma atividade pela descrição
+     * Busca as atividade com um status específico
      *
-     * @param description - Descrição da atividade
+     * @param status - Status da atividade
      *
-     * @returns Atividade buscada
+     * @returns Atividades buscadas
      */
-    public findByDescription(description: string): Promise<Task | undefined> {
-        return this.getConnection().getRepository(Task).findOne({ description });
+    public findByStatus(status: boolean): Promise<Task[] | undefined> {
+        return this.getConnection().getRepository(Task).find({ isDeleted: status });
     }
 }
