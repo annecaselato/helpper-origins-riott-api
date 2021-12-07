@@ -1,21 +1,19 @@
-// import { Logger } from 'library';
-// import multer from 'multer';
-// import { extname } from 'path';
+import multer from 'multer';
+// import { resolve } from 'path';
+import crypto from 'crypto';
 
-export class Helper {
-    static customFileName(req: any, file: { mimetype: string | string[]; originalname: string }, cb: (arg0: null, arg1: string) => void): void {
-        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        let fileExtension = '';
-        if (file.mimetype.indexOf('jpeg') > -1) {
-            fileExtension = 'jpg';
-        } else if (file.mimetype.indexOf('png') > -1) {
-            fileExtension = 'png';
-        }
-        const originalName = file.originalname.split('.')[0];
-        cb(null, `${originalName}-${uniqueSuffix}.${fileExtension}`);
-    }
+export const storage = multer.diskStorage({
+    destination(req, file, cb) {
+        cb(null, './src/avatars/');
+    },
+    filename(req, file, cb) {
+        // Extração da extensão do arquivo original:
+        const extensaoArquivo = file.originalname.split('.')[1];
 
-    static destinationPath(req: any, file: any, cb: (arg0: null, arg1: string) => void): void {
-        cb(null, 'avatars/');
+        // Cria um código randômico que será o nome do arquivo
+        const novoNomeArquivo = crypto.randomBytes(64).toString('hex');
+
+        // Indica o novo nome do arquivo:
+        cb(null, `${novoNomeArquivo}.${extensaoArquivo}`);
     }
-}
+});

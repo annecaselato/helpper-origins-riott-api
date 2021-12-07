@@ -1,16 +1,10 @@
 // Modules
 import { DeepPartial, ObjectID } from 'typeorm';
 import { Request, Response } from 'express';
-import multer, { diskStorage } from 'multer';
-import { Body, UploadedFile, UseInterceptors, Req, Res, Param } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes } from '@nestjs/swagger';
-import { ObjectId } from 'mongodb';
+import multer from 'multer';
 
 // Library
-import { extname } from 'path';
-import { param } from 'express-validator';
-import { Helper } from '../../../../config/multer';
+import { resolve } from 'path';
 import { BaseController, BaseValidator, Logger } from '../../../../library';
 
 // Decorators
@@ -31,7 +25,20 @@ import { MemberRepository } from '../../../../library/database/repository';
 // Validators
 import { MemberValidator } from '../middlewares/MemberValidator';
 
-const SERVER_URL = 'http://localhost:4444/';
+const storage = multer.diskStorage({
+    destination(req, file, cb) {
+        cb(null, './avatars');
+    },
+    filename(req, file, cb) {
+        const id = Array(32)
+            .fill(null)
+            .map(() => Math.round(Math.random() * 16).toString(16))
+            .join('');
+        cb(null, id);
+    }
+});
+
+const upload = multer({ storage }).single('avatar');
 
 @Controller(EnumEndpoints.MEMBER)
 export class MemberController extends BaseController {
@@ -58,7 +65,9 @@ export class MemberController extends BaseController {
     public async get(req: Request, res: Response): Promise<void> {
         const [rows, count] = await new MemberRepository().list<Member>(MemberController.listParams(req));
 
-        RouteResponse.success({ rows, count }, res);
+        const rowsActiveMember = rows.filter(member => member.status === true);
+
+        RouteResponse.success({ rowsActiveMember, count }, res);
     }
 
     /**
@@ -128,7 +137,8 @@ export class MemberController extends BaseController {
         const newMember: DeepPartial<Member> = {
             name: req.body.name,
             birthdate: formatedDate,
-            allowance: req.body.allowance
+            allowance: req.body.allowance,
+            status: true
         };
 
         await new MemberRepository().insert(newMember);
@@ -153,11 +163,17 @@ export class MemberController extends BaseController {
      */
     @Post('/:id/avatar')
     @PublicRoute()
-    @ApiConsumes('multipart/form-data')
     @Middlewares(MemberValidator.onlyId())
-    @UseInterceptors(FileInterceptor('file'))
-    public async uploadFile(@UploadedFile() file: Express.Multer.File): Promise<void> {
-        new Logger().log(file);
+    public async uploadFile(req: Request, res: Response): Promise<void> {
+        upload(req, res, (err: any) => {
+            if (err) {
+                new Logger().error(JSON.stringify(err));
+                res.status(400).send('fail saving image');
+            } else {
+                new Logger().log(`The filename is ${req.files?.file}`);
+                res.send(res.req.files?.file);
+            }
+        });
     }
 
     /**
@@ -242,8 +258,14 @@ export class MemberController extends BaseController {
     public async remove(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
 
-        await new MemberRepository().delete(id);
+        const member: Member | undefined = await new MemberRepository().findOne(id);
 
-        RouteResponse.success({ id }, res);
+        if (typeof member === 'undefined') {
+            RouteResponse.notFound(req, res);
+        } else {
+            member.status = false;
+            await new MemberRepository().update(member);
+            RouteResponse.success({ id }, res);
+        }
     }
 }

@@ -18,6 +18,9 @@ export class Member extends BaseEntity {
     public avatar: string;
 
     @Column()
+    public status: boolean;
+
+    @Column()
     public createdAt: Date;
 
     @Column()
