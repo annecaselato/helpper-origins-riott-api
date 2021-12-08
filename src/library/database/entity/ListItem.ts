@@ -1,4 +1,4 @@
-import { Entity, ObjectID, ObjectIdColumn, Column, BaseEntity } from 'typeorm';
+import { Entity, ObjectID, ObjectIdColumn, Column, BaseEntity, BeforeInsert } from 'typeorm';
 
 @Entity()
 export class ListItem extends BaseEntity {
@@ -12,8 +12,13 @@ export class ListItem extends BaseEntity {
     public taskId: string;
 
     @Column()
-    public status: string;
+    public abscence: boolean;
 
     @Column()
     public value: number;
+
+    @BeforeInsert()
+    public setStatus(): void {
+        this.abscence = false;
+    }
 }

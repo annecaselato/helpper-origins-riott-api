@@ -5,7 +5,7 @@ import { Request, Response } from 'express';
 import { BaseController } from '../../../../library';
 
 // Decorators
-import { Controller, Patch } from '../../../../decorators';
+import { Controller, Patch, Middlewares } from '../../../../decorators';
 
 // Models
 import { EnumEndpoints } from '../../../../models';
@@ -16,14 +16,17 @@ import { RouteResponse } from '../../../../routes';
 // Repositories
 import { ListItemRepository } from '../../../../library/database/repository';
 
-@Controller(EnumEndpoints.CHECKLIST_V1)
+// Validators
+import { ListItemValidator } from '../middlewares/ListItemValidator';
+
+@Controller(EnumEndpoints.LISTITEM_V1)
 export class ListItemController extends BaseController {
     /**
      * @swagger
-     * /v1/checklist/{checklistId}:
+     * /v1/listItem/{listItemId}:
      *   patch:
-     *     summary: Altera o status da lista de marcação para Fechada
-     *     tags: [Checklists]
+     *     summary: Marca a falta no item da lista
+     *     tags: [ListItems]
      *     security:
      *       - bearerAuth: []
      *     consumes:
@@ -32,7 +35,7 @@ export class ListItemController extends BaseController {
      *       - application/json
      *     parameters:
      *       - in: path
-     *         name: checklistId
+     *         name: listItemId
      *         schema:
      *           type: string
      *         required: true
@@ -40,10 +43,11 @@ export class ListItemController extends BaseController {
      *       $ref: '#/components/responses/baseResponse'
      */
     @Patch('/:id')
-    public async check(req: Request, res: Response): Promise<void> {
+    @Middlewares(ListItemValidator.onlyId())
+    public async markAbscence(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
 
-        await new ListItemRepository().updateStatus(id, 'checked');
+        await new ListItemRepository().updateStatus(id);
 
         RouteResponse.success({ id }, res);
     }

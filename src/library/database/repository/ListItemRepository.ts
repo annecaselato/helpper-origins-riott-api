@@ -24,11 +24,10 @@ export class ListItemRepository extends BaseRepository {
      * Altera o status do item pelo id
      *
      * @param id - ID do item
-     * @param status - Novo status do item
      *
      * @returns Resultado da alteração
      */
-    public updateStatus(id: string, status: string): Promise<UpdateResult> {
-        return this.getConnection().getRepository(ListItem).update(id, { status });
+    public updateStatus(id: string): Promise<UpdateResult> {
+        return this.getConnection().getRepository(ListItem).update(id, { abscence: true });
     }
 }
