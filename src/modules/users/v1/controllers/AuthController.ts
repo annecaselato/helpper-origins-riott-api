@@ -71,7 +71,7 @@ export class AuthController extends BaseController {
 
             // Gerando o token
             const token = jwt.sign({ id: user.id }, 'secret', { expiresIn: '1d' });
-            RouteResponse.successEmpty(res.json({ user: [user.id, user.email], token }));
+            RouteResponse.successEmpty(res.json(token));
         }
     }
 }
