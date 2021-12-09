@@ -2,15 +2,15 @@
 import { DeepPartial, DeleteResult, Repository, UpdateResult } from 'typeorm';
 
 // Entities
-import { Checklist, ListItem } from '../entity';
+import { Checklist } from '../entity';
 
 // Repositories
 import { BaseRepository } from './BaseRepository';
 
 /**
- * UserRepository
+ * ChecklistRepository
  *
- * Repositório para tabela de usuários
+ * Repositório para tabela de listas de marcação
  */
 export class ChecklistRepository extends BaseRepository {
     constructor() {
@@ -23,9 +23,9 @@ export class ChecklistRepository extends BaseRepository {
      *
      * Adiciona uma lista de marcação nova
      *
-     * @param checklist - Dados da lista de marcação
+     * @param checklist - Dados da lista
      *
-     * @returns Lista de marcação adicionada
+     * @returns Lista adicionada
      */
     public insert(checklist: DeepPartial<Checklist>): Promise<Checklist> {
         const checklistRepository: Repository<Checklist> = this.getConnection().getRepository(Checklist);
@@ -33,11 +33,24 @@ export class ChecklistRepository extends BaseRepository {
     }
 
     /**
+     * update
+     *
+     * Altera uma lista de marcação
+     *
+     * @param checklist - Dados da lista
+     *
+     * @returns Lista alterada
+     */
+    public update(checklist: Checklist): Promise<Checklist> {
+        return this.getConnection().getRepository(Checklist).save(checklist);
+    }
+
+    /**
      * delete
      *
      * Remove uma lista de marcação pelo ID
      *
-     * @param id - ID da lista de marcação
+     * @param id - ID da lista
      *
      * @returns Resultado da remoção
      */
@@ -50,8 +63,8 @@ export class ChecklistRepository extends BaseRepository {
      *
      * Altera o status da lista de marcaação pelo id da lista
      *
-     * @param id - ID da lista de marcação
-     * @param status - Novo status da lista de marcação
+     * @param id - ID da lista
+     * @param status - Novo status da lista
      *
      * @returns Resultado da alteração
      */
@@ -64,26 +77,13 @@ export class ChecklistRepository extends BaseRepository {
      *
      * Busca uma lista de marcação pela id do membro e o status da lista
      *
-     * @param memberId - Id do membro com a lista de marcação
+     * @param memberId - Id do membro
      *
-     * @param status - Status da lista de marcação
+     * @param status - Status da lista
      *
-     * @returns Lista de marcação buscada
+     * @returns Lista buscada
      */
     public findByMemberAndStatus(memberId: string, status: string): Promise<Checklist[] | undefined> {
         return this.getConnection().getRepository(Checklist).find({ memberId, status });
-    }
-
-    /**
-     * findListItems
-     *
-     * Busca os itens de uma lista de marcação pelo id da lista
-     *
-     * @param listId - Id do membro com a lista de marcação
-     *
-     * @returns Lista de itens buscada
-     */
-    public findListItems(listId: string): Promise<ListItem[] | undefined> {
-        return this.getConnection().getRepository(ListItem).find({ listId });
     }
 }

@@ -1,4 +1,5 @@
-import { Entity, ObjectID, ObjectIdColumn, Column, BaseEntity } from 'typeorm';
+import { Entity, ObjectID, ObjectIdColumn, Column, BaseEntity, BeforeInsert } from 'typeorm';
+import { EnumListStatus } from '../../../models';
 
 @Entity()
 export class Checklist extends BaseEntity {
@@ -13,4 +14,18 @@ export class Checklist extends BaseEntity {
 
     @Column()
     public status: string;
+
+    @Column()
+    public abscenceCount: number;
+
+    @Column()
+    public startDate: Date;
+
+    @Column()
+    public closeDate: Date;
+
+    @BeforeInsert()
+    public setStatus(): void {
+        this.status = EnumListStatus.onHold;
+    }
 }

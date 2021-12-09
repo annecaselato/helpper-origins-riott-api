@@ -44,6 +44,18 @@ export class ChecklistValidator extends BaseValidator {
     }
 
     /**
+     * put
+     *
+     * @returns Lista de validadores
+     */
+    public static put(): RequestHandler[] {
+        return ChecklistValidator.validationList({
+            id: ChecklistValidator.model.id,
+            ...ChecklistValidator.model
+        });
+    }
+
+    /**
      * onlyId
      *
      * @returns Lista de validadores
