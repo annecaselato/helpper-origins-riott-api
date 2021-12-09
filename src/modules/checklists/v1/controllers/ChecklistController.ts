@@ -1,12 +1,12 @@
 // Modules
-import { DeepPartial } from 'typeorm';
+import { DeepPartial, ObjectID } from 'typeorm';
 import { Request, Response } from 'express';
 
 // Library
 import { BaseController } from '../../../../library';
 
 // Decorators
-import { Controller, Middlewares, Get, Patch, Post, Put } from '../../../../decorators';
+import { Controller, Middlewares, Get, Patch, Post, Put, Delete } from '../../../../decorators';
 
 // Models
 import { EnumEndpoints, EnumListStatus } from '../../../../models';
@@ -63,8 +63,8 @@ export class ChecklistController extends BaseController {
     @Post()
     @Middlewares(ChecklistValidator.post())
     public async add(req: Request, res: Response): Promise<void> {
-        const onHoldList = await new ChecklistRepository().findByMemberAndStatus(req.body.memberId, EnumListStatus.onHold);
-        const activeList = await new ChecklistRepository().findByMemberAndStatus(req.body.memberId, EnumListStatus.active);
+        const onHoldList: Checklist[] | undefined = await new ChecklistRepository().findByMemberAndStatus(req.body.memberId, EnumListStatus.onHold);
+        const activeList: Checklist[] | undefined = await new ChecklistRepository().findByMemberAndStatus(req.body.memberId, EnumListStatus.active);
 
         if (onHoldList || activeList) {
             RouteResponse.error('Membro já possui uma lista em espera ou em andamento', res);
@@ -74,11 +74,11 @@ export class ChecklistController extends BaseController {
                 memberId: req.body.memberId
             };
 
-            const listId = (await new ChecklistRepository().insert(newChecklist)).id;
+            const listId: ObjectID = (await new ChecklistRepository().insert(newChecklist)).id;
 
-            const newItems = req.body.listItems;
+            const newItems: ListItem[] = req.body.listItems;
 
-            newItems.forEach(async (element: { taskId: string; value: number }) => {
+            newItems.forEach(async (element: ListItem) => {
                 const newItem: DeepPartial<ListItem> = {
                     listId: listId.toString(),
                     taskId: element.taskId,
@@ -144,15 +144,15 @@ export class ChecklistController extends BaseController {
 
             await new ChecklistRepository().update(checklist);
 
-            const listItems = await new ListItemRepository().findListItems(checklist.id.toString());
+            const listItems: ListItem[] | undefined = await new ListItemRepository().findListItems(checklist.id.toString());
 
             listItems?.forEach(async (element: ListItem) => {
                 await new ListItemRepository().delete(element.id.toString());
             });
 
-            const newItems = req.body.listItems;
+            const newItems: ListItem[] | undefined = req.body.listItems;
 
-            newItems.forEach(async (element: { taskId: string; value: number }) => {
+            newItems?.forEach(async (element: ListItem) => {
                 const newItem: DeepPartial<ListItem> = {
                     listId: checklist.id.toString(),
                     taskId: element.taskId,
@@ -164,6 +164,77 @@ export class ChecklistController extends BaseController {
 
             RouteResponse.successEmpty(res);
         }
+    }
+
+    /**
+     * @swagger
+     * /v1/checklist/{checklistId}:
+     *   delete:
+     *     summary: Apaga uma lista de marcação definitivamente
+     *     tags: [Checklists]
+     *     consumes:
+     *       - application/json
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - in: path
+     *         name: checklistId
+     *         schema:
+     *           type: string
+     *         required: true
+     *     responses:
+     *       $ref: '#/components/responses/baseResponse'
+     */
+    @Delete('/:id')
+    @Middlewares(ChecklistValidator.onlyId())
+    public async remove(req: Request, res: Response): Promise<void> {
+        const { id } = req.params;
+
+        const checklist: Checklist = req.body.checklistRef;
+
+        if (checklist.status !== EnumListStatus.onHold) {
+            RouteResponse.error('Apenas listas em espera podem ser deletadas', res);
+        } else {
+            const listItems: ListItem[] | undefined = await new ListItemRepository().findListItems(id.toString());
+
+            listItems?.forEach(async (element: ListItem) => {
+                await new ListItemRepository().delete(element.id.toString());
+            });
+
+            await new ChecklistRepository().delete(id);
+
+            RouteResponse.success({ id }, res);
+        }
+    }
+
+    /**
+     * @swagger
+     * /v1/checklist/{checklistId}:
+     *   patch:
+     *     summary: Inicia uma lista de marcação
+     *     tags: [Checklists]
+     *     security:
+     *       - bearerAuth: []
+     *     consumes:
+     *       - application/json
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - in: path
+     *         name: checklistId
+     *         schema:
+     *           type: string
+     *         required: true
+     *     responses:
+     *       $ref: '#/components/responses/baseResponse'
+     */
+    @Patch('/start/:id')
+    @Middlewares(ChecklistValidator.onlyId())
+    public async start(req: Request, res: Response): Promise<void> {
+        const { id } = req.params;
+        await new ChecklistRepository().updateStatus(id, EnumListStatus.active);
+
+        RouteResponse.success({ id }, res);
     }
 
     /**
@@ -191,11 +262,13 @@ export class ChecklistController extends BaseController {
     @Middlewares(ChecklistValidator.memberId())
     public async getActive(req: Request, res: Response): Promise<void> {
         const { memberId } = req.params;
-        const activeList = await new ChecklistRepository().findByMemberAndStatus(memberId, EnumListStatus.active);
+        const activeList: Checklist[] | undefined = await new ChecklistRepository().findByMemberAndStatus(memberId, EnumListStatus.active);
+
         if (!activeList) {
             RouteResponse.error('Nenhuma lista em andamento', res);
         } else {
-            const listItems = await new ListItemRepository().findListItems(activeList[0].id.toString());
+            const listItems: ListItem[] | undefined = await new ListItemRepository().findListItems(activeList[0].id.toString());
+
             RouteResponse.success({ activeList, listItems }, res);
         }
     }
@@ -226,36 +299,6 @@ export class ChecklistController extends BaseController {
     public async close(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
         await new ChecklistRepository().updateStatus(id, EnumListStatus.closed);
-
-        RouteResponse.success({ id }, res);
-    }
-
-    /**
-     * @swagger
-     * /v1/checklist/{checklistId}:
-     *   patch:
-     *     summary: Inicia uma lista de marcação
-     *     tags: [Checklists]
-     *     security:
-     *       - bearerAuth: []
-     *     consumes:
-     *       - application/json
-     *     produces:
-     *       - application/json
-     *     parameters:
-     *       - in: path
-     *         name: checklistId
-     *         schema:
-     *           type: string
-     *         required: true
-     *     responses:
-     *       $ref: '#/components/responses/baseResponse'
-     */
-    @Patch('/start/:id')
-    @Middlewares(ChecklistValidator.onlyId())
-    public async start(req: Request, res: Response): Promise<void> {
-        const { id } = req.params;
-        await new ChecklistRepository().updateStatus(id, EnumListStatus.active);
 
         RouteResponse.success({ id }, res);
     }
