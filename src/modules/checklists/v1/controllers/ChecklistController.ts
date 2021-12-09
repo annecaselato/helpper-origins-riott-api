@@ -110,14 +110,18 @@ export class ChecklistController extends BaseController {
      *           schema:
      *             type: object
      *             example:
+     *               id: checklistId
      *               name: checklistName
      *               memberId: checklistMember
      *               listItems: [{taskId1: taskId, value1: 20}, {taskId2: taskId, value2: 10}]
      *             required:
+     *               - id
      *               - name
      *               - memberId
      *               - listItems
      *             properties:
+     *               id:
+     *                 type: string
      *               name:
      *                 type: string
      *               memberId:
