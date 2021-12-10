@@ -22,12 +22,7 @@ export class TaskValidator extends BaseValidator {
     private static model: Schema = {
         description: {
             ...BaseValidator.validators.name,
-            isLength: {
-                options: {
-                    min: 10
-                }
-            },
-            errorMessage: 'A Descrição deve conter ao menos 10 caracteres'
+            errorMessage: 'Descrição inválida'
         },
         id: {
             ...BaseValidator.validators.id(new TaskRepository()),
