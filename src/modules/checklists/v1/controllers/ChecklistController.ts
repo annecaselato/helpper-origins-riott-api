@@ -15,7 +15,7 @@ import { EnumEndpoints, EnumListStatus } from '../../../../models';
 import { RouteResponse } from '../../../../routes';
 
 // Entities
-import { Checklist, ListItem } from '../../../../library/database/entity';
+import { Checklist, ListItem, Member } from '../../../../library/database/entity';
 
 // Repositories
 import { ChecklistRepository, ListItemRepository } from '../../../../library/database/repository';
@@ -232,9 +232,17 @@ export class ChecklistController extends BaseController {
     @Middlewares(ChecklistValidator.onlyId())
     public async start(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
-        await new ChecklistRepository().updateStatus(id, EnumListStatus.active);
+        const checklist: Checklist = req.body.checklistRef;
 
-        RouteResponse.success({ id }, res);
+        if (checklist.status !== EnumListStatus.onHold) {
+            RouteResponse.error('Apenas listas em espera podem ser iniciadas', res);
+        } else {
+            checklist.status = EnumListStatus.active;
+            checklist.startDate = new Date();
+
+            await new ChecklistRepository().update(checklist);
+            RouteResponse.success({ id }, res);
+        }
     }
 
     /**
@@ -258,10 +266,12 @@ export class ChecklistController extends BaseController {
      *     responses:
      *       $ref: '#/components/responses/baseResponse'
      */
-    @Get('/:memberId')
+    @Get('/active/:memberId')
     @Middlewares(ChecklistValidator.memberId())
     public async getActive(req: Request, res: Response): Promise<void> {
         const { memberId } = req.params;
+        const member: Member = req.body.memberRef;
+
         const activeList: Checklist[] | undefined = await new ChecklistRepository().findByMemberAndStatus(memberId, EnumListStatus.active);
 
         if (!activeList) {
@@ -269,7 +279,17 @@ export class ChecklistController extends BaseController {
         } else {
             const listItems: ListItem[] | undefined = await new ListItemRepository().findListItems(activeList[0].id.toString());
 
-            RouteResponse.success({ activeList, listItems }, res);
+            const abscenceItems: ListItem[] | undefined = listItems?.filter(obj => obj.abscence === false);
+
+            let discount = 0;
+            if (abscenceItems) {
+                discount = abscenceItems.reduce((acc, curr) => acc + curr.value, 0);
+
+                const abscenceCount = abscenceItems.length;
+                await new ChecklistRepository().updateCount(activeList[0].id.toString(), abscenceCount);
+            }
+            const total = member.allowance - discount;
+            RouteResponse.success({ activeList, listItems, discount, total }, res);
         }
     }
 
@@ -277,7 +297,7 @@ export class ChecklistController extends BaseController {
      * @swagger
      * /v1/checklist/{checklistId}:
      *   patch:
-     *     summary: Fecha uma lista de marcação
+     *     summary: Encerra uma lista de marcação
      *     tags: [Checklists]
      *     security:
      *       - bearerAuth: []
@@ -294,13 +314,55 @@ export class ChecklistController extends BaseController {
      *     responses:
      *       $ref: '#/components/responses/baseResponse'
      */
-    @Patch('/:id')
+    @Patch('/close/:id')
     @Middlewares(ChecklistValidator.onlyId())
     public async close(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
-        await new ChecklistRepository().updateStatus(id, EnumListStatus.closed);
+        const checklist: Checklist = req.body.checklistRef;
 
-        RouteResponse.success({ id }, res);
+        if (checklist.status !== EnumListStatus.active) {
+            RouteResponse.error('Apenas listas em andamento podem ser encerradas', res);
+        } else {
+            checklist.status = EnumListStatus.closed;
+            checklist.closeDate = new Date();
+
+            await new ChecklistRepository().update(checklist);
+            RouteResponse.success({ id }, res);
+        }
+    }
+
+    /**
+     * @swagger
+     * /v1/checklist/{memberId}:
+     *   get:
+     *     summary: Retorna informações das listas encerradas de um membro
+     *     tags: [Checklists]
+     *     security:
+     *       - bearerAuth: []
+     *     consumes:
+     *       - application/json
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - in: path
+     *         name: memberId
+     *         schema:
+     *           type: string
+     *         required: true
+     *     responses:
+     *       $ref: '#/components/responses/baseResponse'
+     */
+    @Get('/closed/:memberId')
+    @Middlewares(ChecklistValidator.memberId())
+    public async getClosed(req: Request, res: Response): Promise<void> {
+        const { memberId } = req.params;
+        const closedLists: Checklist[] | undefined = await new ChecklistRepository().findByMemberAndStatus(memberId, EnumListStatus.closed);
+
+        if (!closedLists) {
+            RouteResponse.error('Nenhuma lista encerrada', res);
+        } else {
+            RouteResponse.success(closedLists, res);
+        }
     }
 
     /**

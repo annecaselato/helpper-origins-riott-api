@@ -28,4 +28,8 @@ export class Checklist extends BaseEntity {
     public setStatus(): void {
         this.status = EnumListStatus.onHold;
     }
+
+    public setAbscenceCount(): void {
+        this.abscenceCount = 0;
+    }
 }

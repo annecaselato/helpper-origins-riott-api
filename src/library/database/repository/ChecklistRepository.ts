@@ -59,17 +59,17 @@ export class ChecklistRepository extends BaseRepository {
     }
 
     /**
-     * updateStatus
+     * updateCount
      *
-     * Altera o status da lista de marcaação pelo id da lista
+     * Altera o valor da contagem de faltas da lista
      *
      * @param id - ID da lista
-     * @param status - Novo status da lista
+     * @param count - Numero de faltas
      *
      * @returns Resultado da alteração
      */
-    public updateStatus(id: string, status: string): Promise<UpdateResult> {
-        return this.getConnection().getRepository(Checklist).update(id, { status });
+    public updateCount(id: string, count: number): Promise<UpdateResult> {
+        return this.getConnection().getRepository(Checklist).update(id, { abscenceCount: count });
     }
 
     /**
