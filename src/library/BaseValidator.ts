@@ -65,7 +65,7 @@ export class BaseValidator {
             in: 'body',
             isDateString: true,
             matches: {
-                options: [/^([0-3]{1}[0-9]{1})\/([0-1]{1}[1-9]{1})\/([0-9]{4})/]
+                options: [/^([0-3]{1}[0-9]{1})\/([0-1]{1}[0-2]{1})\/([0-9]{4})/]
             },
             errorMessage: 'Data de nascimento inválida'
         },
