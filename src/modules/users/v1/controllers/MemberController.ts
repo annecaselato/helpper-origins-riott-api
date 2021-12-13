@@ -1,10 +1,10 @@
 // Modules
-import { DeepPartial, ObjectID } from 'typeorm';
+import { DeepPartial } from 'typeorm';
 import { Request, Response } from 'express';
 import multer from 'multer';
+import path from 'path';
 
 // Library
-import { resolve } from 'path';
 import { BaseController, BaseValidator, Logger } from '../../../../library';
 
 // Decorators
@@ -25,20 +25,10 @@ import { MemberRepository } from '../../../../library/database/repository';
 // Validators
 import { MemberValidator } from '../middlewares/MemberValidator';
 
-const storage = multer.diskStorage({
-    destination(req, file, cb) {
-        cb(null, './avatars');
-    },
-    filename(req, file, cb) {
-        const id = Array(32)
-            .fill(null)
-            .map(() => Math.round(Math.random() * 16).toString(16))
-            .join('');
-        cb(null, id);
-    }
-});
+// Multer
+import { multerConfig } from '../../../../config/multer';
 
-const upload = multer({ storage }).single('avatar');
+const upload = multer(multerConfig).single('file');
 
 @Controller(EnumEndpoints.MEMBER)
 export class MemberController extends BaseController {
@@ -94,6 +84,28 @@ export class MemberController extends BaseController {
     @Middlewares(MemberValidator.onlyId())
     public async getOne(req: Request, res: Response): Promise<void> {
         RouteResponse.success({ ...req.body.memberRef }, res);
+    }
+
+    @Get('/avatar/:id')
+    @PublicRoute()
+    @Middlewares(MemberValidator.onlyId())
+    public async getImageMember(req: Request, res: Response): Promise<void> {
+        const { id } = req.params;
+
+        const member: Member | undefined = await new MemberRepository().findOne(id);
+
+        const options = {
+            root: path.join(__dirname, '../../../../avatars/')
+        };
+
+        const filename = `${member?.avatar}.jpg`;
+
+        res.sendFile(filename, options, err => {
+            if (err) {
+                res.send(err);
+                res.status(403).send('Sorry! Image not uploaded');
+            }
+        });
     }
 
     /**
@@ -152,9 +164,17 @@ export class MemberController extends BaseController {
      *   post:
      *     summary: Envia arquivo de foto
      *     tags: [Members]
+     *     consumes:
+     *        - multipart/form-data
+     *     parameters:
+     *       - in: path
+     *         name: memberId
+     *         schema:
+     *           type: string
+     *         required: true
      *     requestBody:
      *       content:
-     *          image/jpg:
+     *          multipart/form-data:
      *              schema:
      *                  type: string
      *                  format: binary
@@ -165,13 +185,14 @@ export class MemberController extends BaseController {
     @PublicRoute()
     @Middlewares(MemberValidator.onlyId())
     public async uploadFile(req: Request, res: Response): Promise<void> {
-        upload(req, res, (err: any) => {
+        new Logger().log(req);
+        upload(req, res, async (err: any) => {
             if (err) {
-                new Logger().error(JSON.stringify(err));
                 res.status(400).send('fail saving image');
             } else {
-                new Logger().log(`The filename is ${req.files?.file}`);
-                res.send(res.req.files?.file);
+                const { id } = req.params;
+                await new MemberRepository().setAvatar(id, req.file?.filename);
+                RouteResponse.successCreate(res);
             }
         });
     }

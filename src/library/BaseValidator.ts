@@ -61,13 +61,18 @@ export class BaseValidator {
             },
             errorMessage: 'Nome inválido'
         },
-        birthday: {
+        birthdate: {
             in: 'body',
             isDateString: true,
             matches: {
                 options: [/^([0-3]{1}[0-9]{1})\/([0-1]{1}[1-9]{1})\/([0-9]{4})/]
             },
             errorMessage: 'Data de nascimento inválida'
+        },
+        allowance: {
+            in: 'body',
+            isNumeric: true,
+            errorMessage: 'Mesada invalida'
         }
     };
 
@@ -116,6 +121,14 @@ export class BaseValidator {
         return BaseValidator.validationList({ id: BaseValidator.validators.id(repository) });
     }
 
+    /**
+     * formatData
+     *
+     * Formata a data informada do tipo string para um tipo Date
+     *
+     *
+     * @param data Recebe um string com a data para ser formada
+     */
     public static formatDate(data: string): Date {
         const dateItems: any[] = data.split('/');
         const formatItems: string[] = 'dd/mm/yyyy'.split('/');

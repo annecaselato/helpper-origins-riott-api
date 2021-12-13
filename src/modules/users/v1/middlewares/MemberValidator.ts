@@ -24,8 +24,8 @@ export class MemberValidator extends BaseValidator {
      */
     private static model: Schema = {
         name: BaseValidator.validators.name,
-        birthday: BaseValidator.validators.birthday,
-        allowance: { in: 'body', isNumeric: true, errorMessage: 'Mesada invalida' },
+        birthdate: BaseValidator.validators.birthdate,
+        allowance: BaseValidator.validators.allowance,
         id: {
             ...BaseValidator.validators.id(new MemberRepository()),
             errorMessage: 'Membro não encontrado'
@@ -57,6 +57,8 @@ export class MemberValidator extends BaseValidator {
     public static post(): RequestHandler[] {
         return MemberValidator.validationList({
             name: MemberValidator.model.name,
+            birthdate: MemberValidator.model.birthdate,
+            allowance: MemberValidator.model.allowance,
             duplicate: MemberValidator.model.duplicate
         });
     }

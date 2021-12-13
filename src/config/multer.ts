@@ -1,19 +1,31 @@
-import multer from 'multer';
-// import { resolve } from 'path';
-import crypto from 'crypto';
+import { Options, diskStorage } from 'multer';
 
-export const storage = multer.diskStorage({
-    destination(req, file, cb) {
-        cb(null, './src/avatars/');
+export const multerConfig = {
+    dest: './src/avatars',
+    storage: diskStorage({
+        destination: (request, file, callback) => {
+            callback(null, './src/avatars');
+        },
+        filename: (request, file, callback) => {
+            const extensaoArquivo = file.originalname.split('.')[1];
+
+            const { id } = request.params;
+
+            const novoNomeArquivo = id;
+
+            callback(null, `${novoNomeArquivo}.${extensaoArquivo}`);
+        }
+    }),
+    limits: {
+        fileSize: 2 * 1024 * 1024 // 2MB
     },
-    filename(req, file, cb) {
-        // Extração da extensão do arquivo original:
-        const extensaoArquivo = file.originalname.split('.')[1];
+    fileFilter: (request, file, callback) => {
+        const formats = ['image/jpeg', 'image/jpg', 'image/png'];
 
-        // Cria um código randômico que será o nome do arquivo
-        const novoNomeArquivo = crypto.randomBytes(64).toString('hex');
-
-        // Indica o novo nome do arquivo:
-        cb(null, `${novoNomeArquivo}.${extensaoArquivo}`);
+        if (formats.includes(file.mimetype)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Format not accepted'));
+        }
     }
-});
+} as Options;

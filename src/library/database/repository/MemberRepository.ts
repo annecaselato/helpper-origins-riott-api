@@ -71,7 +71,7 @@ export class MemberRepository extends BaseRepository {
         return this.getConnection().getRepository(Member).findOne({ name });
     }
 
-    public setAvatar(userId: ObjectID, avatarUrl: string): Promise<UpdateResult> {
+    public setAvatar(userId: string | number | ObjectID, avatarUrl: string | undefined): Promise<UpdateResult> {
         return this.getConnection().getRepository(Member).update(userId, { avatar: avatarUrl });
     }
 }
