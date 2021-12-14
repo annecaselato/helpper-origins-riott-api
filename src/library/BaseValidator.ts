@@ -129,14 +129,19 @@ export class BaseValidator {
      *
      * @param data Recebe um string com a data para ser formada
      */
-    public static formatDate(data: string): Date {
+    public static formatDate(data: string): Date | undefined {
         const dateItems: any[] = data.split('/');
         const formatItems: string[] = 'dd/mm/yyyy'.split('/');
         const dayIndex: number = formatItems.indexOf('dd');
         const monthIndex: number = formatItems.indexOf('mm');
+        if (monthIndex < 0 || monthIndex >= 13) return undefined;
         const yearIndex: number = formatItems.indexOf('yyyy');
+        if (yearIndex < 0) return undefined;
         let month: number = parseInt(dateItems[monthIndex], 10);
         month -= 1;
+        if (dateItems[dayIndex] < 0 || dateItems[dayIndex] >= 32) return undefined;
+        if (month < 0 || month >= 12) return undefined;
+        if (dateItems[yearIndex] < 0) return undefined;
         const formatedDate: Date = new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
         return formatedDate;
     }

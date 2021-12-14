@@ -144,18 +144,21 @@ export class MemberController extends BaseController {
     @PublicRoute()
     @Middlewares(MemberValidator.post())
     public async add(req: Request, res: Response): Promise<void> {
-        const formatedDate: Date = BaseValidator.formatDate(req.body.birthdate);
+        const formatedDate: Date | undefined = BaseValidator.formatDate(req.body.birthdate);
+        if (formatedDate === undefined) {
+            RouteResponse.error('Data informada fora do padrão', res);
+        } else {
+            const newMember: DeepPartial<Member> = {
+                name: req.body.name,
+                birthdate: formatedDate,
+                allowance: req.body.allowance,
+                status: true
+            };
 
-        const newMember: DeepPartial<Member> = {
-            name: req.body.name,
-            birthdate: formatedDate,
-            allowance: req.body.allowance,
-            status: true
-        };
+            await new MemberRepository().insert(newMember);
 
-        await new MemberRepository().insert(newMember);
-
-        RouteResponse.successCreate(res);
+            RouteResponse.successCreate(res);
+        }
     }
 
     /**
@@ -164,8 +167,6 @@ export class MemberController extends BaseController {
      *   post:
      *     summary: Envia arquivo de foto
      *     tags: [Members]
-     *     consumes:
-     *        - multipart/form-data
      *     parameters:
      *       - in: path
      *         name: memberId
@@ -176,8 +177,11 @@ export class MemberController extends BaseController {
      *       content:
      *          multipart/form-data:
      *              schema:
-     *                  type: string
-     *                  format: binary
+     *                  type: object
+     *                  properties:
+     *                     file:
+     *                        type: string
+     *                        format: binary
      *     responses:
      *       $ref: '#/components/responses/baseCreate'
      */
@@ -185,10 +189,11 @@ export class MemberController extends BaseController {
     @PublicRoute()
     @Middlewares(MemberValidator.onlyId())
     public async uploadFile(req: Request, res: Response): Promise<void> {
-        new Logger().log(req);
         upload(req, res, async (err: any) => {
             if (err) {
-                res.status(400).send('fail saving image');
+                RouteResponse.error('Falha ao salvar imagem', res);
+            } else if (req.file === undefined) {
+                RouteResponse.error('Nenhum arquivo encontrado', res);
             } else {
                 const { id } = req.params;
                 await new MemberRepository().setAvatar(id, req.file?.filename);
@@ -243,15 +248,19 @@ export class MemberController extends BaseController {
     public async update(req: Request, res: Response): Promise<void> {
         const member: Member = req.body.memberRef;
 
-        const formatedDate: Date = BaseValidator.formatDate(req.body.birthdate);
+        const formatedDate: Date | undefined = BaseValidator.formatDate(req.body.birthdate);
 
-        member.name = req.body.name;
-        member.birthdate = formatedDate;
-        member.allowance = req.body.allowance;
+        if (formatedDate === undefined) {
+            RouteResponse.error('Data informada fora do padrão', res);
+        } else {
+            member.name = req.body.name;
+            member.birthdate = formatedDate;
+            member.allowance = req.body.allowance;
 
-        await new MemberRepository().update(member);
+            await new MemberRepository().update(member);
 
-        RouteResponse.successEmpty(res);
+            RouteResponse.successEmpty(res);
+        }
     }
 
     /**
