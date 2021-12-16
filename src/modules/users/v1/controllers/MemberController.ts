@@ -23,7 +23,7 @@ import { Member } from '../../../../library/database/entity';
 import { MemberRepository } from '../../../../library/database/repository';
 
 // Validators
-import { MemberValidator } from '../middlewares/MemberValidator';
+import { MemberValidator } from '../middlewares/UserValidator';
 
 // Multer
 import { multerConfig } from '../../../../config/multer';
