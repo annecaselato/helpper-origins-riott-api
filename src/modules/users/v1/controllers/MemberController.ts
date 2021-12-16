@@ -5,7 +5,6 @@ import multer from 'multer';
 import path from 'path';
 
 // Library
-import fs from 'fs';
 import { BaseController, BaseValidator } from '../../../../library';
 
 // Decorators
