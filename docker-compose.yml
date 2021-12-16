@@ -6,7 +6,7 @@ services:
         build: .
         volumes:
             - .:/app
-            - /app/node_modules
+            - ./node_modules:/app/node_modules
         environment:
             - NODE_ENV=development # Define o host, controla a exibição de logs e execução de migrations
             - PORT=8080
