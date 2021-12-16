@@ -5,6 +5,7 @@ import multer from 'multer';
 import path from 'path';
 
 // Library
+import fs from 'fs';
 import { BaseController, BaseValidator } from '../../../../library';
 
 // Decorators
@@ -129,8 +130,7 @@ export class MemberController extends BaseController {
 
         res.sendFile(filename, options, err => {
             if (err) {
-                // res.send(err);
-                res.status(403).send('Sorry! Image not uploaded');
+                res.status(403).send('Desculpe! Imagem não pode ser carregada');
             }
         });
     }
