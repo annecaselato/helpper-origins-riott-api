@@ -5,7 +5,7 @@ import multer from 'multer';
 import path from 'path';
 
 // Library
-import { BaseController, BaseValidator, Logger } from '../../../../library';
+import { BaseController, BaseValidator } from '../../../../library';
 
 // Decorators
 import { Controller, Delete, Get, Middlewares, Post, PublicRoute, Put } from '../../../../decorators';
@@ -86,6 +86,33 @@ export class MemberController extends BaseController {
         RouteResponse.success({ ...req.body.memberRef }, res);
     }
 
+    /**
+     * @swagger
+     * /v1/member/avatar/{memberId}:
+     *   get:
+     *     summary: Retorna avatar de um membro da família
+     *     tags: [Members]
+     *     produces:
+     *       - image/jpg
+     *     parameters:
+     *       - in: path
+     *         name: memberId
+     *         schema:
+     *           type: string
+     *         required: true
+     *     responses:
+     *        '200':
+     *            description: Avatar image in PNG format
+     *            content:
+     *              image/png:
+     *                  schema:
+     *                     type: object
+     *                     properties:
+     *                          type: string
+     *                          format: binary
+     *        '403':
+     *            description: Avatar image is not uploaded
+     */
     @Get('/avatar/:id')
     @PublicRoute()
     @Middlewares(MemberValidator.onlyId())
@@ -98,11 +125,11 @@ export class MemberController extends BaseController {
             root: path.join(__dirname, '../../../../avatars/')
         };
 
-        const filename = `${member?.avatar}.jpg`;
+        const filename = `${member?.avatar}`;
 
         res.sendFile(filename, options, err => {
             if (err) {
-                res.send(err);
+                // res.send(err);
                 res.status(403).send('Sorry! Image not uploaded');
             }
         });
@@ -144,21 +171,18 @@ export class MemberController extends BaseController {
     @PublicRoute()
     @Middlewares(MemberValidator.post())
     public async add(req: Request, res: Response): Promise<void> {
-        const formatedDate: Date | undefined = BaseValidator.formatDate(req.body.birthdate);
-        if (formatedDate === undefined) {
-            RouteResponse.error('Data informada fora do padrão', res);
-        } else {
-            const newMember: DeepPartial<Member> = {
-                name: req.body.name,
-                birthdate: formatedDate,
-                allowance: req.body.allowance,
-                status: true
-            };
+        const formatedDate: Date = BaseValidator.formatDate(req.body.birthdate);
 
-            await new MemberRepository().insert(newMember);
+        const newMember: DeepPartial<Member> = {
+            name: req.body.name,
+            birthdate: formatedDate,
+            allowance: req.body.allowance,
+            status: true
+        };
 
-            RouteResponse.successCreate(res);
-        }
+        await new MemberRepository().insert(newMember);
+
+        RouteResponse.successCreate(res);
     }
 
     /**
@@ -248,19 +272,15 @@ export class MemberController extends BaseController {
     public async update(req: Request, res: Response): Promise<void> {
         const member: Member = req.body.memberRef;
 
-        const formatedDate: Date | undefined = BaseValidator.formatDate(req.body.birthdate);
+        const formatedDate: Date = BaseValidator.formatDate(req.body.birthdate);
 
-        if (formatedDate === undefined) {
-            RouteResponse.error('Data informada fora do padrão', res);
-        } else {
-            member.name = req.body.name;
-            member.birthdate = formatedDate;
-            member.allowance = req.body.allowance;
+        member.name = req.body.name;
+        member.birthdate = formatedDate;
+        member.allowance = req.body.allowance;
 
-            await new MemberRepository().update(member);
+        await new MemberRepository().update(member);
 
-            RouteResponse.successEmpty(res);
-        }
+        RouteResponse.successEmpty(res);
     }
 
     /**

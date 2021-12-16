@@ -65,7 +65,9 @@ export class BaseValidator {
             in: 'body',
             isDateString: true,
             matches: {
-                options: [/^([0-3]{1}[0-9]{1})\/([0-1]{1}[0-2]{1})\/([0-9]{4})/]
+                options: [
+                    /^(?:(?:31(\/)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/)(?:0?[1,3-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/
+                ]
             },
             errorMessage: 'Data de nascimento inválida'
         },
@@ -129,20 +131,12 @@ export class BaseValidator {
      *
      * @param data Recebe um string com a data para ser formada
      */
-    public static formatDate(data: string): Date | undefined {
-        const dateItems: any[] = data.split('/');
-        const formatItems: string[] = 'dd/mm/yyyy'.split('/');
-        const dayIndex: number = formatItems.indexOf('dd');
-        const monthIndex: number = formatItems.indexOf('mm');
-        if (monthIndex < 0 || monthIndex >= 13) return undefined;
-        const yearIndex: number = formatItems.indexOf('yyyy');
-        if (yearIndex < 0) return undefined;
-        let month: number = parseInt(dateItems[monthIndex], 10);
-        month -= 1;
-        if (dateItems[dayIndex] < 0 || dateItems[dayIndex] >= 32) return undefined;
-        if (month < 0 || month >= 12) return undefined;
-        if (dateItems[yearIndex] < 0) return undefined;
-        const formatedDate: Date = new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
+    public static formatDate(data: string): Date {
+        const dateItems: string[] = data.split('/'); // data recebida no formato dd/MM/yyyy
+        const day = Number(dateItems[0]);
+        const month = Number(dateItems[1]) - 1;
+        const year = Number(dateItems[2]);
+        const formatedDate: Date = new Date(year, month, day);
         return formatedDate;
     }
 }
