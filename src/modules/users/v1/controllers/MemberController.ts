@@ -5,7 +5,7 @@ import multer from 'multer';
 import path from 'path';
 
 // Library
-import { BaseController, BaseValidator } from '../../../../library';
+import { BaseController } from '../../../../library';
 
 // Decorators
 import { Controller, Delete, Get, Middlewares, Post, PublicRoute, Put } from '../../../../decorators';
@@ -23,7 +23,7 @@ import { Member } from '../../../../library/database/entity';
 import { MemberRepository } from '../../../../library/database/repository';
 
 // Validators
-import { MemberValidator } from '../middlewares/UserValidator';
+import { MemberValidator } from '../middlewares/MemberValidator';
 
 // Multer
 import { multerConfig } from '../../../../config/multer';
@@ -170,11 +170,9 @@ export class MemberController extends BaseController {
     @PublicRoute()
     @Middlewares(MemberValidator.post())
     public async add(req: Request, res: Response): Promise<void> {
-        const formatedDate: Date = BaseValidator.formatDate(req.body.birthdate);
-
         const newMember: DeepPartial<Member> = {
             name: req.body.name,
-            birthdate: formatedDate,
+            birthdate: req.body.birthdate,
             allowance: req.body.allowance,
             status: true
         };
@@ -235,12 +233,6 @@ export class MemberController extends BaseController {
      *       - application/json
      *     produces:
      *       - application/json
-     *     parameters:
-     *       - in: path
-     *         name: memberId
-     *         schema:
-     *           type: string
-     *         required: true
      *     requestBody:
      *       content:
      *         application/json:
@@ -271,10 +263,8 @@ export class MemberController extends BaseController {
     public async update(req: Request, res: Response): Promise<void> {
         const member: Member = req.body.memberRef;
 
-        const formatedDate: Date = BaseValidator.formatDate(req.body.birthdate);
-
         member.name = req.body.name;
-        member.birthdate = formatedDate;
+        member.birthdate = req.body.birthdate;
         member.allowance = req.body.allowance;
 
         await new MemberRepository().update(member);

@@ -63,7 +63,7 @@ export class BaseValidator {
         },
         birthdate: {
             in: 'body',
-            isDateString: true,
+            isString: true,
             matches: {
                 options: [
                     /^(?:(?:31(\/)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/)(?:0?[1,3-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:0?[1-9]|1\d|2[0-8])(\/)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2})$/
@@ -121,22 +121,5 @@ export class BaseValidator {
      */
     public static onlyId(repository: BaseRepository): RequestHandler[] {
         return BaseValidator.validationList({ id: BaseValidator.validators.id(repository) });
-    }
-
-    /**
-     * formatData
-     *
-     * Formata a data informada do tipo string para um tipo Date
-     *
-     *
-     * @param data Recebe um string com a data para ser formada
-     */
-    public static formatDate(data: string): Date {
-        const dateItems: string[] = data.split('/'); // data recebida no formato dd/MM/yyyy
-        const day = Number(dateItems[0]);
-        const month = Number(dateItems[1]) - 1;
-        const year = Number(dateItems[2]);
-        const formatedDate: Date = new Date(year, month, day);
-        return formatedDate;
     }
 }

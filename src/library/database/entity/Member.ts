@@ -9,7 +9,7 @@ export class Member extends BaseEntity {
     public name: string;
 
     @Column()
-    public birthdate: Date;
+    public birthdate: string;
 
     @Column()
     public allowance: number;
