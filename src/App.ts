@@ -2,7 +2,6 @@
 import compression from 'compression';
 import cors from 'cors';
 import express, { Application } from 'express';
-import fileMiddleware from 'express-multipart-file-parser';
 import helmet from 'helmet';
 import swaggerJSDoc from 'swagger-jsdoc';
 import swaggerUI from 'swagger-ui-express';
@@ -70,7 +69,6 @@ export class App {
         this.app.use(express.urlencoded({ limit: '50mb', extended: true }));
         this.app.use(cors({ origin: true })); // Automaticamente habilita cross-origin requests
         this.app.use(compression()); // Compressão GZIP
-        this.app.use(fileMiddleware); // Trata arquivos enviados para rota e adiciona no express.req
 
         // Middlewares externos
         if (middlewares) {

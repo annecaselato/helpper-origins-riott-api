@@ -2,20 +2,23 @@ import { Entity, ObjectID, ObjectIdColumn, Column, BeforeInsert, BeforeUpdate, B
 
 @Entity()
 export class Member extends BaseEntity {
-    @ObjectIdColumn() // Alterar para @PrimaryGeneratedColumn em caso de banco diferente do MongoDB
+    @ObjectIdColumn()
     public id: ObjectID;
 
     @Column()
     public name: string;
 
     @Column()
-    public birthdate: Date;
+    public birthdate: string;
 
     @Column()
     public allowance: number;
 
     @Column()
     public avatar: string;
+
+    @Column()
+    public status: boolean;
 
     @Column()
     public createdAt: Date;

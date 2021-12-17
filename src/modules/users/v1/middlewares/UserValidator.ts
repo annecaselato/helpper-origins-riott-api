@@ -1,4 +1,3 @@
-// Libraries
 import { RequestHandler } from 'express';
 import { Schema } from 'express-validator';
 
