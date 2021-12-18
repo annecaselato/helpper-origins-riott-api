@@ -122,16 +122,4 @@ export class BaseValidator {
     public static onlyId(repository: BaseRepository): RequestHandler[] {
         return BaseValidator.validationList({ id: BaseValidator.validators.id(repository) });
     }
-
-    public static formatDate(data: string): Date {
-        const dateItems: any[] = data.split('/');
-        const formatItems: string[] = 'dd/mm/yyyy'.split('/');
-        const dayIndex: number = formatItems.indexOf('dd');
-        const monthIndex: number = formatItems.indexOf('mm');
-        const yearIndex: number = formatItems.indexOf('yyyy');
-        let month: number = parseInt(dateItems[monthIndex], 10);
-        month -= 1;
-        const formatedDate: Date = new Date(dateItems[yearIndex], month, dateItems[dayIndex]);
-        return formatedDate;
-    }
 }
