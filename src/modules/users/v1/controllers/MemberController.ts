@@ -53,7 +53,6 @@ export class MemberController extends BaseController {
      *       $ref: '#/components/responses/baseResponse'
      */
     @Get()
-    @PublicRoute()
     public async get(req: Request, res: Response): Promise<void> {
         const [rows, count] = await new MemberRepository().list<Member>(MemberController.listParams(req));
 
@@ -84,7 +83,6 @@ export class MemberController extends BaseController {
      *       $ref: '#/components/responses/baseResponse'
      */
     @Get('/:id')
-    @PublicRoute()
     @Middlewares(MemberValidator.onlyId())
     public async getOne(req: Request, res: Response): Promise<void> {
         RouteResponse.success({ ...req.body.memberRef }, res);
@@ -120,7 +118,6 @@ export class MemberController extends BaseController {
      *            description: Avatar image is not uploaded
      */
     @Get('/avatar/:id')
-    @PublicRoute()
     @Middlewares(MemberValidator.onlyId())
     public async getImageMember(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
@@ -175,7 +172,6 @@ export class MemberController extends BaseController {
      *       $ref: '#/components/responses/baseCreate'
      */
     @Post()
-    @PublicRoute()
     @Middlewares(MemberValidator.post())
     public async add(req: Request, res: Response): Promise<void> {
         const newMember: DeepPartial<Member> = {
@@ -217,7 +213,6 @@ export class MemberController extends BaseController {
      *       $ref: '#/components/responses/baseCreate'
      */
     @Post('/:id/avatar')
-    @PublicRoute()
     @Middlewares(MemberValidator.onlyId())
     public async uploadFile(req: Request, res: Response): Promise<void> {
         upload(req, res, async (err: any) => {
@@ -276,7 +271,6 @@ export class MemberController extends BaseController {
      *       $ref: '#/components/responses/baseEmpty'
      */
     @Put()
-    @PublicRoute()
     @Middlewares(MemberValidator.put())
     public async update(req: Request, res: Response): Promise<void> {
         const member: Member = req.body.memberRef;
@@ -312,7 +306,6 @@ export class MemberController extends BaseController {
      *       $ref: '#/components/responses/baseResponse'
      */
     @Delete('/:id')
-    @PublicRoute()
     @Middlewares(MemberValidator.onlyId())
     public async remove(req: Request, res: Response): Promise<void> {
         const { id } = req.params;
