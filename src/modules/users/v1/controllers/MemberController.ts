@@ -38,6 +38,8 @@ export class MemberController extends BaseController {
      *   get:
      *     summary: Lista os membros da família
      *     tags: [Members]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
@@ -66,6 +68,8 @@ export class MemberController extends BaseController {
      *   get:
      *     summary: Retorna informações de um membro da família
      *     tags: [Members]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
@@ -92,6 +96,8 @@ export class MemberController extends BaseController {
      *   get:
      *     summary: Retorna avatar de um membro da família
      *     tags: [Members]
+     *     security:
+     *       - bearerAuth: []
      *     produces:
      *       - image/jpg
      *     parameters:
@@ -140,6 +146,8 @@ export class MemberController extends BaseController {
      *   post:
      *     summary: Cadastra um novo membro da família
      *     tags: [Members]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
@@ -188,6 +196,8 @@ export class MemberController extends BaseController {
      *   post:
      *     summary: Envia arquivo de foto
      *     tags: [Members]
+     *     security:
+     *       - bearerAuth: []
      *     parameters:
      *       - in: path
      *         name: memberId
@@ -229,6 +239,8 @@ export class MemberController extends BaseController {
      *   put:
      *     summary: Altera um membro da família
      *     tags: [Members]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
@@ -284,6 +296,8 @@ export class MemberController extends BaseController {
      *   delete:
      *     summary: Apaga um membro da família definitivamente
      *     tags: [Members]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:

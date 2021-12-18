@@ -172,6 +172,8 @@ export class ChecklistController extends BaseController {
      *   delete:
      *     summary: Apaga uma lista de marcação definitivamente
      *     tags: [Checklists]
+     *     security:
+     *       - bearerAuth: []
      *     consumes:
      *       - application/json
      *     produces:
@@ -209,7 +211,7 @@ export class ChecklistController extends BaseController {
 
     /**
      * @swagger
-     * /v1/checklist/{checklistId}:
+     * /v1/checklist/start/{checklistId}:
      *   patch:
      *     summary: Inicia uma lista de marcação
      *     tags: [Checklists]
@@ -247,7 +249,7 @@ export class ChecklistController extends BaseController {
 
     /**
      * @swagger
-     * /v1/checklist/{memberId}:
+     * /v1/checklist/active/{memberId}:
      *   get:
      *     summary: Retorna informações da lista ativa de um membro
      *     tags: [Checklists]
@@ -295,7 +297,7 @@ export class ChecklistController extends BaseController {
 
     /**
      * @swagger
-     * /v1/checklist/{checklistId}:
+     * /v1/checklist/close/{checklistId}:
      *   patch:
      *     summary: Encerra uma lista de marcação
      *     tags: [Checklists]
@@ -333,7 +335,7 @@ export class ChecklistController extends BaseController {
 
     /**
      * @swagger
-     * /v1/checklist/{memberId}:
+     * /v1/checklist/closed/{memberId}:
      *   get:
      *     summary: Retorna informações das listas encerradas de um membro
      *     tags: [Checklists]
