@@ -233,6 +233,12 @@ export class MemberController extends BaseController {
      *       - application/json
      *     produces:
      *       - application/json
+     *     parameters:
+     *       - in: path
+     *         name: memberId
+     *         schema:
+     *           type: string
+     *         required: true
      *     requestBody:
      *       content:
      *         application/json:

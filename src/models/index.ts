@@ -3,6 +3,7 @@ export * from './EnumConstants';
 export * from './EnumDecorators';
 export * from './EnumEndpoints';
 export * from './EnumMethod';
+export * from './EnumOptions';
 export * from './IAppConfig';
 export * from './IGetListParams';
 export * from './ILogger';
