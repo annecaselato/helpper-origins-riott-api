@@ -8,7 +8,7 @@ import path from 'path';
 import { BaseController } from '../../../../library';
 
 // Decorators
-import { Controller, Delete, Get, Middlewares, Post, PublicRoute, Put } from '../../../../decorators';
+import { Controller, Delete, Get, Middlewares, Post, Put } from '../../../../decorators';
 
 // Models
 import { EnumEndpoints } from '../../../../models';
