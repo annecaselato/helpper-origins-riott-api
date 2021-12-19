@@ -29,6 +29,7 @@ export class Checklist extends BaseEntity {
         this.status = EnumListStatus.onHold;
     }
 
+    @BeforeInsert()
     public setAbscenceCount(): void {
         this.abscenceCount = 0;
     }
