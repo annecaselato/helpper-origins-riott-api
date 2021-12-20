@@ -76,4 +76,21 @@ export class ChecklistValidator extends BaseValidator {
             memberId: ChecklistValidator.model.memberId
         });
     }
+
+    /**
+     * history
+     *
+     * @returns Lista de validadores
+     */
+    public static history(): RequestHandler[] {
+        return BaseValidator.validationList({
+            memberId: ChecklistValidator.model.memberId,
+            order: {
+                isIn: {
+                    options: [['ascending', 'descending']]
+                },
+                errorMessage: 'Ordem inválida'
+            }
+        });
+    }
 }

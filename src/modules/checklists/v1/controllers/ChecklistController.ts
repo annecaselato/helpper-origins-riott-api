@@ -335,7 +335,7 @@ export class ChecklistController extends BaseController {
 
     /**
      * @swagger
-     * /v1/checklist/closed/{memberId}:
+     * /v1/checklist/closed/{memberId}/{order}:
      *   get:
      *     summary: Retorna informações das listas encerradas de um membro
      *     tags: [Checklists]
@@ -351,18 +351,28 @@ export class ChecklistController extends BaseController {
      *         schema:
      *           type: string
      *         required: true
+     *       - in: path
+     *         name: order
+     *         schema:
+     *           type: string
+     *         required: true
      *     responses:
      *       $ref: '#/components/responses/baseResponse'
      */
-    @Get('/closed/:memberId')
-    @Middlewares(ChecklistValidator.memberId())
+    @Get('/closed/:memberId/:order')
+    @Middlewares(ChecklistValidator.history())
     public async getClosed(req: Request, res: Response): Promise<void> {
-        const { memberId } = req.params;
+        const { memberId, order } = req.params;
         const closedLists: Checklist[] = await new ChecklistRepository().findByMemberAndStatus(memberId, EnumListStatus.closed);
 
         if (!closedLists[0]) {
             RouteResponse.error('Nenhuma lista encerrada', res);
         } else {
+            if (order === 'ascending') {
+                closedLists.sort((a, b) => Number(a.closeDate) - Number(b.closeDate));
+            } else {
+                closedLists.sort((b, a) => Number(a.closeDate) - Number(b.closeDate));
+            }
             RouteResponse.success(closedLists, res);
         }
     }
