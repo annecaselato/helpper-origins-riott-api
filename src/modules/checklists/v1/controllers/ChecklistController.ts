@@ -379,7 +379,7 @@ export class ChecklistController extends BaseController {
             if (order === 'ascending') {
                 closedLists.sort((a, b) => Number(a.closeDate) - Number(b.closeDate));
             } else {
-                closedLists.sort((b, a) => Number(a.closeDate) - Number(b.closeDate));
+                closedLists.sort((a, b) => Number(b.closeDate) - Number(a.closeDate));
             }
             RouteResponse.success(closedLists, res);
         }
