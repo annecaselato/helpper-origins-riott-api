@@ -78,15 +78,17 @@ export class ChecklistController extends BaseController {
 
             const newItems: ListItem[] = req.body.listItems;
 
-            newItems.forEach(async (element: ListItem) => {
-                const newItem: DeepPartial<ListItem> = {
-                    listId: listId.toString(),
-                    taskId: element.taskId,
-                    value: element.value
-                };
+            await Promise.all(
+                newItems.map(async item => {
+                    const newItem: DeepPartial<ListItem> = {
+                        listId: listId.toString(),
+                        taskId: item.taskId,
+                        value: item.value
+                    };
 
-                await new ListItemRepository().insert(newItem);
-            });
+                    await new ListItemRepository().insert(newItem);
+                })
+            );
 
             RouteResponse.successCreate(res);
         }
@@ -146,21 +148,25 @@ export class ChecklistController extends BaseController {
 
             const listItems: ListItem[] = await new ListItemRepository().findListItems(checklist.id.toString());
 
-            listItems.forEach(async (element: ListItem) => {
-                await new ListItemRepository().delete(element.id.toString());
-            });
+            await Promise.all(
+                listItems.map(async item => {
+                    await new ListItemRepository().delete(item.id.toString());
+                })
+            );
 
             const newItems: ListItem[] = req.body.listItems;
 
-            newItems.forEach(async (element: ListItem) => {
-                const newItem: DeepPartial<ListItem> = {
-                    listId: checklist.id.toString(),
-                    taskId: element.taskId,
-                    value: element.value
-                };
+            await Promise.all(
+                newItems.map(async item => {
+                    const newItem: DeepPartial<ListItem> = {
+                        listId: checklist.id.toString(),
+                        taskId: item.taskId,
+                        value: item.value
+                    };
 
-                await new ListItemRepository().insert(newItem);
-            });
+                    await new ListItemRepository().insert(newItem);
+                })
+            );
 
             RouteResponse.successEmpty(res);
         }
@@ -199,9 +205,11 @@ export class ChecklistController extends BaseController {
         } else {
             const listItems: ListItem[] = await new ListItemRepository().findListItems(id.toString());
 
-            listItems.forEach(async (element: ListItem) => {
-                await new ListItemRepository().delete(element.id.toString());
-            });
+            await Promise.all(
+                listItems.map(async item => {
+                    await new ListItemRepository().delete(item.id.toString());
+                })
+            );
 
             await new ChecklistRepository().delete(id);
 
