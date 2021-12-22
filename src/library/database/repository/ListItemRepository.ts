@@ -2,7 +2,7 @@
 import { UpdateResult, DeepPartial, Repository, DeleteResult } from 'typeorm';
 
 // Entities
-import { ListItem } from '../entity';
+import { ListItem, Task } from '../entity';
 
 // Repositories
 import { BaseRepository } from './BaseRepository';
@@ -69,5 +69,16 @@ export class ListItemRepository extends BaseRepository {
      */
     public findListItems(listId: string): Promise<ListItem[]> {
         return this.getConnection().getRepository(ListItem).find({ listId });
+    }
+
+    /**
+     * getDescriptionActivities
+     *
+     * @returns Todas as atividades cadastradas
+     */
+    public getDescriptionActivities(): Promise<Task[] | undefined> {
+        return this.getConnection()
+            .getRepository(Task)
+            .find({ relations: ['listItens'] });
     }
 }
