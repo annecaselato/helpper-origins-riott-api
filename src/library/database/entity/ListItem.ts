@@ -1,4 +1,5 @@
-import { Entity, ObjectID, ObjectIdColumn, Column, BaseEntity, BeforeInsert } from 'typeorm';
+import { Entity, ObjectID, ObjectIdColumn, Column, BaseEntity, BeforeInsert, ManyToMany, JoinTable } from 'typeorm';
+import { Task } from './Task';
 
 @Entity()
 export class ListItem extends BaseEntity {
@@ -21,4 +22,8 @@ export class ListItem extends BaseEntity {
     public setStatus(): void {
         this.abscence = false;
     }
+
+    @ManyToMany(() => Task)
+    @JoinTable()
+    tasks: Task[];
 }

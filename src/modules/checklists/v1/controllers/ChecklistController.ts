@@ -15,7 +15,7 @@ import { EnumEndpoints, EnumListStatus } from '../../../../models';
 import { RouteResponse } from '../../../../routes';
 
 // Entities
-import { Checklist, ListItem, Member } from '../../../../library/database/entity';
+import { Checklist, ListItem, Member, Task } from '../../../../library/database/entity';
 
 // Repositories
 import { ChecklistRepository, ListItemRepository } from '../../../../library/database/repository';
@@ -45,7 +45,7 @@ export class ChecklistController extends BaseController {
      *             example:
      *               name: checklistName
      *               memberId: checklistMember
-     *               listItems: [{taskId1: taskId, value1: 20}, {taskId2: taskId, value2: 10}]
+     *               listItems: [{taskId: taskId1, value: 20}, {taskId: taskId2, value: 10}]
      *             required:
      *               - name
      *               - memberId
@@ -113,7 +113,7 @@ export class ChecklistController extends BaseController {
      *               id: checklistId
      *               name: checklistName
      *               memberId: checklistMember
-     *               listItems: [{taskId1: taskId, value1: 20}, {taskId2: taskId, value2: 10}]
+     *               listItems: [{taskId: taskId1, value: 20}, {taskId: taskId2, value: 10}]
      *             required:
      *               - id
      *               - name
@@ -364,6 +364,58 @@ export class ChecklistController extends BaseController {
             RouteResponse.error('Nenhuma lista encerrada', res);
         } else {
             RouteResponse.success(closedLists, res);
+        }
+    }
+
+    /**
+     * @swagger
+     * /v1/checklist/getActivities/{checklistId}:
+     *   get:
+     *     summary: Lista as atividades de uma lista de marcação
+     *     tags: [Checklists]
+     *     security:
+     *       - bearerAuth: []
+     *     consumes:
+     *       - application/json
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - in: path
+     *         name: checklistId
+     *         schema:
+     *           type: string
+     *         required: true
+     *     responses:
+     *       $ref: '#/components/responses/baseResponse'
+     */
+    @Get('/getActivities/:id')
+    @Middlewares(ChecklistValidator.onlyId())
+    public async getActivitiesFromChecklist(req: Request, res: Response): Promise<void> {
+        const { id } = req.params;
+        const listItems: ListItem[] | undefined = await new ListItemRepository().findListItems(id);
+
+        const activitiesIds: string[] = [];
+
+        listItems?.forEach(async (element: ListItem) => {
+            activitiesIds.push(element.taskId);
+        });
+
+        const tasks: Task[] | undefined = await new ListItemRepository().getDescriptionActivities();
+
+        const listOfActivities: string[] = [];
+
+        activitiesIds.forEach((activity: string) => {
+            tasks?.forEach(async (task: Task) => {
+                if (activity === task.id.toString()) {
+                    listOfActivities.push(task.description);
+                }
+            });
+        });
+
+        if (listOfActivities.length > 0) {
+            RouteResponse.success(listOfActivities, res);
+        } else {
+            RouteResponse.error('Nenhuma atividade encontrada nessa lista', res);
         }
     }
 
