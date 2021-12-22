@@ -45,7 +45,7 @@ export class ChecklistController extends BaseController {
      *             example:
      *               name: checklistName
      *               memberId: checklistMember
-     *               listItems: [{taskId1: taskId, value1: 20}, {taskId2: taskId, value2: 10}]
+     *               listItems: [{taskId: taskId1, value: 20}, {taskId: taskId2, value: 10}]
      *             required:
      *               - name
      *               - memberId
@@ -63,10 +63,10 @@ export class ChecklistController extends BaseController {
     @Post()
     @Middlewares(ChecklistValidator.post())
     public async add(req: Request, res: Response): Promise<void> {
-        const onHoldList: Checklist[] | undefined = await new ChecklistRepository().findByMemberAndStatus(req.body.memberId, EnumListStatus.onHold);
-        const activeList: Checklist[] | undefined = await new ChecklistRepository().findByMemberAndStatus(req.body.memberId, EnumListStatus.active);
+        const onHoldList: Checklist[] = await new ChecklistRepository().findByMemberAndStatus(req.body.memberId, EnumListStatus.onHold);
+        const activeList: Checklist[] = await new ChecklistRepository().findByMemberAndStatus(req.body.memberId, EnumListStatus.active);
 
-        if (onHoldList || activeList) {
+        if (onHoldList[0] || activeList[0]) {
             RouteResponse.error('Membro já possui uma lista em espera ou em andamento', res);
         } else {
             const newChecklist: DeepPartial<Checklist> = {
@@ -78,15 +78,17 @@ export class ChecklistController extends BaseController {
 
             const newItems: ListItem[] = req.body.listItems;
 
-            newItems.forEach(async (element: ListItem) => {
-                const newItem: DeepPartial<ListItem> = {
-                    listId: listId.toString(),
-                    taskId: element.taskId,
-                    value: element.value
-                };
+            await Promise.all(
+                newItems.map(async item => {
+                    const newItem: DeepPartial<ListItem> = {
+                        listId: listId.toString(),
+                        taskId: item.taskId,
+                        value: item.value
+                    };
 
-                await new ListItemRepository().insert(newItem);
-            });
+                    await new ListItemRepository().insert(newItem);
+                })
+            );
 
             RouteResponse.successCreate(res);
         }
@@ -113,7 +115,7 @@ export class ChecklistController extends BaseController {
      *               id: checklistId
      *               name: checklistName
      *               memberId: checklistMember
-     *               listItems: [{taskId1: taskId, value1: 20}, {taskId2: taskId, value2: 10}]
+     *               listItems: [{taskId: taskId, value: 20}, {taskId: taskId, value: 10}]
      *             required:
      *               - id
      *               - name
@@ -144,23 +146,27 @@ export class ChecklistController extends BaseController {
 
             await new ChecklistRepository().update(checklist);
 
-            const listItems: ListItem[] | undefined = await new ListItemRepository().findListItems(checklist.id.toString());
+            const listItems: ListItem[] = await new ListItemRepository().findListItems(checklist.id.toString());
 
-            listItems?.forEach(async (element: ListItem) => {
-                await new ListItemRepository().delete(element.id.toString());
-            });
+            await Promise.all(
+                listItems.map(async item => {
+                    await new ListItemRepository().delete(item.id.toString());
+                })
+            );
 
-            const newItems: ListItem[] | undefined = req.body.listItems;
+            const newItems: ListItem[] = req.body.listItems;
 
-            newItems?.forEach(async (element: ListItem) => {
-                const newItem: DeepPartial<ListItem> = {
-                    listId: checklist.id.toString(),
-                    taskId: element.taskId,
-                    value: element.value
-                };
+            await Promise.all(
+                newItems.map(async item => {
+                    const newItem: DeepPartial<ListItem> = {
+                        listId: checklist.id.toString(),
+                        taskId: item.taskId,
+                        value: item.value
+                    };
 
-                await new ListItemRepository().insert(newItem);
-            });
+                    await new ListItemRepository().insert(newItem);
+                })
+            );
 
             RouteResponse.successEmpty(res);
         }
@@ -197,11 +203,13 @@ export class ChecklistController extends BaseController {
         if (checklist.status !== EnumListStatus.onHold) {
             RouteResponse.error('Apenas listas em espera podem ser deletadas', res);
         } else {
-            const listItems: ListItem[] | undefined = await new ListItemRepository().findListItems(id.toString());
+            const listItems: ListItem[] = await new ListItemRepository().findListItems(id.toString());
 
-            listItems?.forEach(async (element: ListItem) => {
-                await new ListItemRepository().delete(element.id.toString());
-            });
+            await Promise.all(
+                listItems.map(async item => {
+                    await new ListItemRepository().delete(item.id.toString());
+                })
+            );
 
             await new ChecklistRepository().delete(id);
 
@@ -274,14 +282,14 @@ export class ChecklistController extends BaseController {
         const { memberId } = req.params;
         const member: Member = req.body.memberRef;
 
-        const activeList: Checklist[] | undefined = await new ChecklistRepository().findByMemberAndStatus(memberId, EnumListStatus.active);
+        const activeList: Checklist[] = await new ChecklistRepository().findByMemberAndStatus(memberId, EnumListStatus.active);
 
-        if (!activeList) {
+        if (!activeList[0]) {
             RouteResponse.error('Nenhuma lista em andamento', res);
         } else {
-            const listItems: ListItem[] | undefined = await new ListItemRepository().findListItems(activeList[0].id.toString());
+            const listItems: ListItem[] = await new ListItemRepository().findListItems(activeList[0].id.toString());
 
-            const abscenceItems: ListItem[] | undefined = listItems?.filter(obj => obj.abscence === false);
+            const abscenceItems: ListItem[] = listItems.filter(obj => obj.abscence === true);
 
             let discount = 0;
             if (abscenceItems) {
@@ -335,7 +343,7 @@ export class ChecklistController extends BaseController {
 
     /**
      * @swagger
-     * /v1/checklist/closed/{memberId}:
+     * /v1/checklist/closed/{memberId}/{order}:
      *   get:
      *     summary: Retorna informações das listas encerradas de um membro
      *     tags: [Checklists]
@@ -351,18 +359,28 @@ export class ChecklistController extends BaseController {
      *         schema:
      *           type: string
      *         required: true
+     *       - in: path
+     *         name: order
+     *         schema:
+     *           type: string
+     *         required: true
      *     responses:
      *       $ref: '#/components/responses/baseResponse'
      */
-    @Get('/closed/:memberId')
-    @Middlewares(ChecklistValidator.memberId())
+    @Get('/closed/:memberId/:order')
+    @Middlewares(ChecklistValidator.history())
     public async getClosed(req: Request, res: Response): Promise<void> {
-        const { memberId } = req.params;
-        const closedLists: Checklist[] | undefined = await new ChecklistRepository().findByMemberAndStatus(memberId, EnumListStatus.closed);
+        const { memberId, order } = req.params;
+        const closedLists: Checklist[] = await new ChecklistRepository().findByMemberAndStatus(memberId, EnumListStatus.closed);
 
-        if (!closedLists) {
+        if (!closedLists[0]) {
             RouteResponse.error('Nenhuma lista encerrada', res);
         } else {
+            if (order === 'ascending') {
+                closedLists.sort((a, b) => Number(a.closeDate) - Number(b.closeDate));
+            } else {
+                closedLists.sort((a, b) => Number(b.closeDate) - Number(a.closeDate));
+            }
             RouteResponse.success(closedLists, res);
         }
     }

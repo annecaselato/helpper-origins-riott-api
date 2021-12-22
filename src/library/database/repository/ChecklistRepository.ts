@@ -83,7 +83,7 @@ export class ChecklistRepository extends BaseRepository {
      *
      * @returns Lista buscada
      */
-    public findByMemberAndStatus(memberId: string, status: string): Promise<Checklist[] | undefined> {
+    public findByMemberAndStatus(memberId: string, status: string): Promise<Checklist[]> {
         return this.getConnection().getRepository(Checklist).find({ memberId, status });
     }
 }
