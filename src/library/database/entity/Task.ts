@@ -1,4 +1,5 @@
-import { Entity, ObjectID, ObjectIdColumn, Column, BaseEntity, BeforeInsert } from 'typeorm';
+import { Entity, ObjectID, ObjectIdColumn, Column, BaseEntity, BeforeInsert, ManyToMany } from 'typeorm';
+import { ListItem } from '.';
 
 @Entity()
 export class Task extends BaseEntity {
@@ -15,4 +16,7 @@ export class Task extends BaseEntity {
     public setDeleted(): void {
         this.isDeleted = false;
     }
+
+    @ManyToMany(() => ListItem, listitem => listitem.tasks)
+    listitens: ListItem[];
 }

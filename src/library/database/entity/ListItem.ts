@@ -23,7 +23,7 @@ export class ListItem extends BaseEntity {
         this.abscence = false;
     }
 
-    @ManyToMany(() => Task)
+    @ManyToMany(() => Task, task => task.listitens)
     @JoinTable()
     tasks: Task[];
 }

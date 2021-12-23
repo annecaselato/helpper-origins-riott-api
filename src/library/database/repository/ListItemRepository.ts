@@ -68,7 +68,19 @@ export class ListItemRepository extends BaseRepository {
      * @returns Lista de itens buscada
      */
     public findListItems(listId: string): Promise<ListItem[]> {
-        return this.getConnection().getRepository(ListItem).find({ listId });
+        return this.getConnection()
+            .getRepository(ListItem)
+            .find({
+                join: {
+                    alias: 'listitem',
+                    leftJoinAndSelect: {
+                        tasks: 'listitem.tasks'
+                    }
+                },
+                where: {
+                    listId
+                }
+            });
     }
 
     /**
