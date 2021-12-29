@@ -3,6 +3,7 @@ import { DeepPartial, ObjectID } from 'typeorm';
 import { Request, Response } from 'express';
 
 // Library
+import { IListItems } from 'models/IListItems';
 import { BaseController } from '../../../../library';
 
 // Decorators
@@ -76,14 +77,14 @@ export class ChecklistController extends BaseController {
 
             const listId: ObjectID = (await new ChecklistRepository().insert(newChecklist)).id;
 
-            const newItems: ListItem[] = req.body.listItems;
+            const newItems: IListItems = req.body.listItems;
 
             await Promise.all(
-                newItems.map(async item => {
+                newItems.map(async (item: IListItems) => {
                     const newItem: DeepPartial<ListItem> = {
                         listId: listId.toString(),
-                        taskId: item.taskId,
-                        value: item.value
+                        value: item.value,
+                        task: await new ListItemRepository().getDescriptionActivities(item.taskId)
                     };
 
                     await new ListItemRepository().insert(newItem);
@@ -115,7 +116,7 @@ export class ChecklistController extends BaseController {
      *               id: checklistId
      *               name: checklistName
      *               memberId: checklistMember
-     *               listItems: [{taskId: taskId, value: 20}, {taskId: taskId, value: 10}]
+     *               listItems: [{taskId: taskId1, value: 20}, {taskId: taskId2, value: 10}]
      *             required:
      *               - id
      *               - name
@@ -154,14 +155,14 @@ export class ChecklistController extends BaseController {
                 })
             );
 
-            const newItems: ListItem[] = req.body.listItems;
+            const newItems: IListItems = req.body.listItems;
 
             await Promise.all(
-                newItems.map(async item => {
+                newItems.map(async (item: IListItems) => {
                     const newItem: DeepPartial<ListItem> = {
                         listId: checklist.id.toString(),
-                        taskId: item.taskId,
-                        value: item.value
+                        value: item.value,
+                        task: await new ListItemRepository().getDescriptionActivities(item.taskId)
                     };
 
                     await new ListItemRepository().insert(newItem);
@@ -382,6 +383,42 @@ export class ChecklistController extends BaseController {
                 closedLists.sort((a, b) => Number(b.closeDate) - Number(a.closeDate));
             }
             RouteResponse.success(closedLists, res);
+        }
+    }
+
+    /**
+     * @swagger
+     * /v1/checklist/getActivities/{checklistId}:
+     *   get:
+     *     summary: Lista as atividades de uma lista de marcação
+     *     tags: [Checklists]
+     *     security:
+     *       - bearerAuth: []
+     *     consumes:
+     *       - application/json
+     *     produces:
+     *       - application/json
+     *     parameters:
+     *       - in: path
+     *         name: checklistId
+     *         schema:
+     *           type: string
+     *         required: true
+     *     responses:
+     *       $ref: '#/components/responses/baseResponse'
+     */
+    @Get('/getActivities/:id')
+    @Middlewares(ChecklistValidator.onlyId())
+    public async getActivitiesFromChecklist(req: Request, res: Response): Promise<void> {
+        const { id } = req.params;
+        const listItems: ListItem[] | undefined = await new ListItemRepository().findListItems(id);
+
+        const listActivities: string[] = listItems.map(listitem => listitem.task.description);
+
+        if (listActivities.length > 0) {
+            RouteResponse.success(listActivities, res);
+        } else {
+            RouteResponse.error('Nenhuma atividade encontrada nessa lista', res);
         }
     }
 

@@ -1,8 +1,8 @@
 // Modules
-import { UpdateResult, DeepPartial, Repository, DeleteResult } from 'typeorm';
+import { UpdateResult, DeepPartial, Repository, DeleteResult, ObjectID } from 'typeorm';
 
 // Entities
-import { ListItem } from '../entity';
+import { ListItem, Task } from '../entity';
 
 // Repositories
 import { BaseRepository } from './BaseRepository';
@@ -69,5 +69,14 @@ export class ListItemRepository extends BaseRepository {
      */
     public findListItems(listId: string): Promise<ListItem[]> {
         return this.getConnection().getRepository(ListItem).find({ listId });
+    }
+
+    /**
+     * getDescriptionActivities
+     *
+     * @returns Todas as atividades cadastradas
+     */
+    public getDescriptionActivities(id: string | ObjectID): Promise<Task | undefined> {
+        return this.getConnection().getRepository(Task).findOne(id);
     }
 }

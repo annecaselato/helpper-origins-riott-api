@@ -12,7 +12,7 @@ const baseOptions: Omit<ConnectionOptions, 'type'> = {
     },
     migrationsRun: process.env.NODE_ENV === 'development', // Habilita execução das migrations
     logging: process.env.NODE_ENV === 'development', // Habilita logs
-    synchronize: true
+    synchronize: false // Se true, causa MongoError: Index keys cannot be empty
 };
 
 // Opções para conexão com MongoDB
