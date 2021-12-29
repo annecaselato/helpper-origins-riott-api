@@ -1,5 +1,5 @@
 import { Entity, ObjectID, ObjectIdColumn, Column, BaseEntity, BeforeInsert } from 'typeorm';
-import { Task } from '.';
+import { Task } from './Task';
 
 @Entity()
 export class ListItem extends BaseEntity {
