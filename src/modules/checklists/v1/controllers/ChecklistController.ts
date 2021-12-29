@@ -3,7 +3,8 @@ import { DeepPartial, ObjectID } from 'typeorm';
 import { Request, Response } from 'express';
 
 // Library
-import { BaseController, Logger } from '../../../../library';
+import { IListItems } from 'models/IListItems';
+import { BaseController } from '../../../../library';
 
 // Decorators
 import { Controller, Middlewares, Get, Patch, Post, Put, Delete } from '../../../../decorators';
@@ -15,7 +16,7 @@ import { EnumEndpoints, EnumListStatus } from '../../../../models';
 import { RouteResponse } from '../../../../routes';
 
 // Entities
-import { Checklist, ListItem, Member, Task } from '../../../../library/database/entity';
+import { Checklist, ListItem, Member } from '../../../../library/database/entity';
 
 // Repositories
 import { ChecklistRepository, ListItemRepository } from '../../../../library/database/repository';
@@ -76,14 +77,14 @@ export class ChecklistController extends BaseController {
 
             const listId: ObjectID = (await new ChecklistRepository().insert(newChecklist)).id;
 
-            const newItems: ListItem[] = req.body.listItems;
+            const newItems: IListItems = req.body.listItems;
 
             await Promise.all(
-                newItems.map(async item => {
+                newItems.map(async (item: IListItems) => {
                     const newItem: DeepPartial<ListItem> = {
                         listId: listId.toString(),
-                        taskId: item.taskId,
-                        value: item.value
+                        value: item.value,
+                        task: await new ListItemRepository().getDescriptionActivities(item.taskId)
                     };
 
                     await new ListItemRepository().insert(newItem);
@@ -115,7 +116,7 @@ export class ChecklistController extends BaseController {
      *               id: checklistId
      *               name: checklistName
      *               memberId: checklistMember
-     *               listItems: [{taskId: taskId, value: 20}, {taskId: taskId, value: 10}]
+     *               listItems: [{taskId: taskId1, value: 20}, {taskId: taskId2, value: 10}]
      *             required:
      *               - id
      *               - name
@@ -154,14 +155,14 @@ export class ChecklistController extends BaseController {
                 })
             );
 
-            const newItems: ListItem[] = req.body.listItems;
+            const newItems: IListItems = req.body.listItems;
 
             await Promise.all(
-                newItems.map(async item => {
+                newItems.map(async (item: IListItems) => {
                     const newItem: DeepPartial<ListItem> = {
                         listId: checklist.id.toString(),
-                        taskId: item.taskId,
-                        value: item.value
+                        value: item.value,
+                        task: await new ListItemRepository().getDescriptionActivities(item.taskId)
                     };
 
                     await new ListItemRepository().insert(newItem);
@@ -412,28 +413,10 @@ export class ChecklistController extends BaseController {
         const { id } = req.params;
         const listItems: ListItem[] | undefined = await new ListItemRepository().findListItems(id);
 
-        new Logger().log(listItems);
+        const listActivities: string[] = listItems.map(listitem => listitem.task.description);
 
-        const activitiesIds: string[] = [];
-
-        listItems?.forEach(async (element: ListItem) => {
-            activitiesIds.push(element.taskId);
-        });
-
-        const tasks: Task[] | undefined = await new ListItemRepository().getDescriptionActivities();
-
-        const listOfActivities: string[] = [];
-
-        activitiesIds.forEach((activity: string) => {
-            tasks?.forEach(async (task: Task) => {
-                if (activity === task.id.toString()) {
-                    listOfActivities.push(task.description);
-                }
-            });
-        });
-
-        if (listOfActivities.length > 0) {
-            RouteResponse.success(listOfActivities, res);
+        if (listActivities.length > 0) {
+            RouteResponse.success(listActivities, res);
         } else {
             RouteResponse.error('Nenhuma atividade encontrada nessa lista', res);
         }
